@@ -1,0 +1,5 @@
+# ignore packages (this is for nuget stuff)
+/packages/*
+
+# Ignore version number folders (these are our intermediate "output" directories for testing)
+/[0-9]*/
