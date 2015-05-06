@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/poshcode/psgit.png?label=ready&title=Ready)](https://waffle.io/poshcode/psgit)
 # PSGit
 
 A PowerShell implementation of Git, providing a new command-line interface and object pipeline.
