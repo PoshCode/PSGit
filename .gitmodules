@@ -1,4 +1,0 @@
-[submodule "lib/Pester"]
-	path = lib/Pester
-	url = git@github.com:Jaykul/Pester.git
-	branch = LanguageDecoupling
