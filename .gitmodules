@@ -2,7 +2,3 @@
 	path = lib/Pester
 	url = git@github.com:Jaykul/Pester.git
 	branch = LanguageDecoupling
-[submodule "lib/libgit2sharp"]
-	path = lib/libgit2sharp
-	url = git@github.com:libgit2/libgit2sharp.git
-	branch = vNext
