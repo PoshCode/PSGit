@@ -1,5 +1,5 @@
 # These are not really steps!
-# They are here so we can use the Must assertion in Pester tests.
+# This is the deffinition of the Must assertion for Pester tests.
 
 function Must {
     [CmdletBinding(DefaultParameterSetName='equal', HelpUri='http://go.microsoft.com/fwlink/?LinkID=113423', RemotingCapability='None')]

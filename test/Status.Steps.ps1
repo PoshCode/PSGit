@@ -9,8 +9,30 @@ Given "a new repository" {
     git init
 }
 
-When "Get-Status is called" {
-    $result = Get-GitStatus
+Given "adding (\d+) files" {
+    param([int]$count)
+    for($f=0; $f-lt$count; $f++){
+        New-Item ([io.path]::GetRandomFileName()) -Item File
+    }
+}
+
+Given "(\d+) files are edited" {
+    param([int]$count)
+
+    foreach($file in Get-ChildItem | Get-Random -Count $count){
+        Add-Content $file (Get-Date)
+    }    
+}
+
+When "Get-GitStatus (.*)? ?is called" {
+    param($pathspec)
+    $result = Get-GitStatus $pathspec
+}
+
+When "Add-GitItem (.*)? is called" {
+    param($pathspec)
+    # TODO: replace with PSGit native commands
+    git add --all $pathspec
 }
 
 Then "the returned object should show" {
@@ -20,7 +42,7 @@ Then "the returned object should show" {
     Pop-Location
     [Environment]::CurrentDirectory = $Pwd
 
-    foreach($Property in $Table | Get-Member -Type Properties | % Name) {
-        $result | Must $Property -Eq $Table.$Property
+    foreach($Property in $Table) {
+        $result | Must $Property.Property -Eq $Property.Value
     }
 }
