@@ -21,6 +21,6 @@ Then "the returned object should show" {
     [Environment]::CurrentDirectory = $Pwd
 
     foreach($Property in $Table | Get-Member -Type Properties | % Name) {
-        $result.$Property | Should Be $Table.$Property
+        $result | Must $Property -Eq $Table.$Property
     }
 }
