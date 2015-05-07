@@ -1,0 +1,2 @@
+Import-Module PSGit -Force
+
