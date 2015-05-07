@@ -38,5 +38,5 @@ Copy-Item "$(Split-Path $global:LibGit2Sharp)\*" -Recurse -Destination $Release\
 
 
 ## Test 
-Import-Module $PSScriptRoot\lib\Pester
+Import-Module $PSScriptRoot\lib\Pester -Force
 Invoke-Gherkin $PSScriptRoot\test

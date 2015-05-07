@@ -10,7 +10,7 @@ Given "a new repository" {
 }
 
 When "Get-Status is called" {
-    $result = Get-Status
+    $result = Get-GitStatus
 }
 
 Then "the returned object should show" {
