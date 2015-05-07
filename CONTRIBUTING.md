@@ -2,7 +2,7 @@
 
 Thanks for taking an insterest in contributing to the PowerShell-enabled Git 
 
-First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for?
+First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for? (**install [this](http://oneget.org/install-oneget.exe)**)?
 
 ### Development
 
