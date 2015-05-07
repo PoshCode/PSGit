@@ -9,3 +9,4 @@ The intent is to take full advantage of the object Pipeline and create task-base
 
 We're also using this project as a way to test out a process of co-working and doing TDD in PowerShell projects -- we'll have one or two people writing specs and tests and we'll be asking other people to implement the commands to pass the tests.
 
+Therefore, we want you to [get involved](CONTRIBUTING.md)!
