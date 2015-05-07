@@ -1,14 +1,26 @@
 Import-Module PSGit -Force
 
 Given "a new repository" {
-    throw "not implemented"
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+    Write-Verbose "New repository in $repo"
+    # TODO: replace with PSGit native commands
+    git init
 }
 
 When "Get-Status is called" {
-    throw "not implemented"
+    $result = Get-Status
 }
 
 Then "the returned object should show" {
     param($Table)
-    throw "not implemented"
+    Write-Verbose ($Table | Out-String)
+
+    Pop-Location
+    [Environment]::CurrentDirectory = $Pwd
+
+    foreach($Property in $Table | Get-Member -Type Properties | % Name) {
+        $result.$Property | Should Be $Table.$Property
+    }
 }
