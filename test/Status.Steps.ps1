@@ -8,28 +8,33 @@ Given "we are NOT in a repository" {
     Remove-Item TestDrive:\* -Recurse -Force
 }
 
-Given "we have initialized a repository" {
+Given "we have initialized a repository(?: with)" {
+    param($table)
+
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
     # TODO: replace with PSGit native commands
     git init
-}
 
-Given "adding (\d+) files" {
-    param([int]$count)
-    for($f=0; $f-lt$count; $f++){
-        New-Item ([io.path]::GetRandomFileName()) -Item File
+    if($table) {
+        foreach($change in $table) {
+            switch($change.FileAction) {
+                "Created" {
+                    New-Item $change.Name -Item File
+                }
+                "Added" {
+                    # TODO: replace with PSGit native commands
+                    git add --all $pathspec
+                }
+                "Modified" {
+                    Add-Content $change.Name (Get-Date)
+                }
+            }
+        }    
     }
 }
 
-Given "(\d+) files are edited" {
-    param([int]$count)
-
-    foreach($file in Get-ChildItem | Get-Random -Count $count){
-        Add-Content $file (Get-Date)
-    }    
-}
 
 When "Get-GitStatus (.*)? ?is called" {
     param($pathspec)

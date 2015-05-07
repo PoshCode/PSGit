@@ -22,8 +22,11 @@ Feature: Get current repository status
 
     @wip
     Scenario: New Files in Repository
-        Given we have initialized a repository
-        And adding 3 files
+        Given we have initialized a repository with
+            | FileAction | Name          |
+            | Created    | FileOne.ps1   |
+            | Created    | FileTwo.ps1   |
+            | Created    | FileThree.ps1 |
         When Get-GitStatus is called
         Then the output should have
             | Property | Value             |
@@ -37,9 +40,12 @@ Feature: Get current repository status
 
     @wip
     Scenario: Added Files to Stage
-        Given we have initialized a repository
-        And adding 3 files
-        When Add-GitItem * is called
+        Given we have initialized a repository with
+            | FileAction | Name          |
+            | Created    | FileOne.ps1   |
+            | Created    | FileTwo.ps1   |
+            | Created    | FileThree.ps1 |
+            | Added      | *             |
         When Get-GitStatus is called
         Then the output should have
             | Property | Value             |
@@ -53,10 +59,14 @@ Feature: Get current repository status
 
     @wip
     Scenario: Added and Modified Files
-        Given we have initialized a repository
-        And adding 3 files
-        When Add-GitItem * is called
-        And 2 files are edited
+        Given we have initialized a repository with
+            | FileAction | Name          |
+            | Created    | FileOne.ps1   |
+            | Created    | FileTwo.ps1   |
+            | Created    | FileThree.ps1 |
+            | Added      | *             |
+            | Modified   | FileOne.ps1   |
+            | Modified   | FileThree.ps1 |
         When Get-GitStatus is called
         Then the output should have
             | Property | Value             |
