@@ -2,6 +2,8 @@
 
 Thanks for taking an insterest in contributing to the PowerShell-enabled Git 
 
+First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for?
+
 ### Development
 
 Development happens on the **dev** branch. Please send pull requests against that branch only.
