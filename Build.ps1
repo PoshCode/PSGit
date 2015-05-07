@@ -36,7 +36,6 @@ Copy-Item "$PSScriptRoot\src\*" -Destination $Release
 ## Copy Library Files
 Copy-Item "$(Split-Path $global:LibGit2Sharp)\*" -Recurse -Destination $Release\lib
 
-
 ## Test 
 Import-Module $PSScriptRoot\lib\Pester -Force
-Invoke-Gherkin $PSScriptRoot\test
+Invoke-Gherkin $PSScriptRoot\test -ExcludeTag wip -CodeCoverage "$Release\*.ps[m1]*"

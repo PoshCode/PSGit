@@ -1,10 +1,17 @@
 Import-Module PSGit -Force
 
-Given "a new repository" {
+Given "we are NOT in a repository" {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
-    Write-Verbose "New repository in $repo"
+
+    Remove-Item TestDrive:\* -Recurse -Force
+}
+
+Given "we have initialized a repository" {
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
     # TODO: replace with PSGit native commands
     git init
 }
@@ -26,7 +33,7 @@ Given "(\d+) files are edited" {
 
 When "Get-GitStatus (.*)? ?is called" {
     param($pathspec)
-    $result = Get-GitStatus $pathspec
+    $script:result = Get-GitStatus $pathspec
 }
 
 When "Add-GitItem (.*)? is called" {
@@ -35,14 +42,28 @@ When "Add-GitItem (.*)? is called" {
     git add --all $pathspec
 }
 
-Then "the returned object should show" {
+# This regex allows the step to be written as any of:
+# the output should be: whatever
+# the output should be: 'whatever'
+# the output should be: "whatever"
+# the output should be: 
+#    """"multi-line string"""
+Then 'the output should be:(?:\s*(["''])?(?<output>.*)(\1))?' {
+    param($output)
+    # TODO: add "AFTER" support for Gherkin so we can do this:
+    Pop-Location; [Environment]::CurrentDirectory = $Pwd
+
+    $result | Must -ceq $output
+}
+
+Then "the output should have" {
     param($Table)
     Write-Verbose ($Table | Out-String)
 
-    Pop-Location
-    [Environment]::CurrentDirectory = $Pwd
+    # TODO: add "AFTER" support for Gherkin so we can do this:
+    Pop-Location; [Environment]::CurrentDirectory = $Pwd
 
     foreach($Property in $Table) {
-        $result | Must $Property.Property -Eq $Property.Value
+        $result | Must -Any $Property.Property -Eq $Property.Value
     }
 }

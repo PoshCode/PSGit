@@ -219,19 +219,6 @@ begin
 
         $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('ForEach-Object', [System.Management.Automation.CommandTypes]::Cmdlet)
         $NullOrEmptyFilter = { if($_ -is [System.Collections.IList]) { $_.Count -eq 0 } elseif( $_ -is [string] ) { [string]::IsNullOrEmpty($_) } else { $_ -eq $null } }
-        $ThrowMessage = {
-            if(!$_) {
-                $message = @("TestObject", $Property, "must")
-                $message += if($Not) { "not" }
-                $message += if($All) { "all" }
-                $message += if($Any) { "any" }
-                $message += $PSCmdlet.ParameterSetName
-                $message += "'$($Value -join "','")'"
-                $message += if($Property) { "-- Actual: '" + $InputObject.$Property + "'"} else { "-- Actual: '" + $InputObject + "'"}
-
-                throw $message
-            }
-        }
 
 
         if (!$PSBoundParameters.ContainsKey('Value'))
@@ -240,15 +227,30 @@ begin
             if($PSBoundParameters.ContainsKey('BeNullOrEmpty')) {
                 $NullOrEmptyFilter = { if($_.Value -is [System.Collections.IList]) { $_.Value.Count -eq 0 } elseif( $_.Value -is [string] ) { [string]::IsNullOrEmpty($_.Value) } else { $_.Value -eq $null } }
             } else {
-                $PSBoundParameters['Value'] = $PSBoundParameters['Property']
-                $PSBoundParameters['Property'] = "Value"
+                $Value = $PSBoundParameters['Value'] = $PSBoundParameters['Property']
+                $Property = $PSBoundParameters['Property'] = "Value"
             }
 
             if($PSBoundParameters.ContainsKey('InputObject'))
             {
-                $PSBoundParameters['InputObject'] = New-Object PSObject -Property @{ "Value" = $InputObject }
+                $InputObject = $PSBoundParameters['InputObject'] = New-Object PSObject -Property @{ "Value" = $InputObject }
             }
         }
+
+        $ThrowMessage = {
+            if(!$_) {
+                $message = @("TestObject", $Property, "must")
+                $message += if($Not) { "not" }
+                $message += if($All) { "all" }
+                $message += if($Any) { "any" }
+                $message += $PSCmdlet.ParameterSetName
+                $message += "'$($Value -join "','")'"
+                $message += if($NoProperty) { "-- Actual: '" + $InputObject + "'" } else { "-- Actual: '" + $InputObject.$Property + "'" }
+
+                throw $message
+            }
+        }
+
 
         $Parameters = @{} + $PSBoundParameters
         if($Parameters.ContainsKey('BeNullOrEmpty')) {
