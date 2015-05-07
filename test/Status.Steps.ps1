@@ -30,6 +30,10 @@ Given "we have initialized a repository(?: with)?" {
                 "Modified" {
                     Add-Content $change.Name (Get-Date)
                 }
+                "Commited" {
+                    # TODO: replace with PSGit native commands
+                    git commit -m "$($change.Name)"
+                }
             }
         }    
     }

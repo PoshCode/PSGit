@@ -48,10 +48,10 @@ Feature: Get current repository status
             | Added      | *             |
         When Get-GitStatus is called
         Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
+            | Property | Value          |
+            | Branch   | master         |
+            | Summary  | 3 Added        |
+            | Note     | Initial Commit |
         And the count of changes should be
             | State | Count |
             | Added | 3     |
@@ -69,13 +69,36 @@ Feature: Get current repository status
             | Modified   | FileThree.ps1 |
         When Get-GitStatus is called
         Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
+            | Property | Value               |
+            | Branch   | master              |
+            | Summary  | 3 Added, 2 Modified |
+            | Note     | Initial Commit      |
         And the count of changes should be
-            | State    | Count |
-            | Added    | 3     |
-            | Modified | 2     |
+            | State          | Count |
+            | Added          | 1     |
+            | Added,Modified | 2     |
         And the 3 added file names should be available
         And the 2 modified file names should be available
+
+    @wip
+    Scenario: Added, Commited and Modified Files
+        Given we have initialized a repository with
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Created    | FileTwo.ps1    |
+            | Added      | *              |
+            | Commited   | Initial Commit |
+            | Modified   | FileOne.ps1    |
+            | Created    | FileThree.ps1  |
+            | Modified   | FileThree.ps1  |
+        When Get-GitStatus is called
+        Then the output should have
+            | Property | Value                   |
+            | Branch   | master                  |
+            | Summary  | 1 Modified, 1 Untracked |
+        And the count of changes should be
+            | State     | Count |
+            | Untracked | 1     |
+            | Modified  | 1     |
+        And the 1 untracked file name should be available
+        And the 1 modified file name should be available
