@@ -8,7 +8,7 @@ Given "we are NOT in a repository" {
     Remove-Item TestDrive:\* -Recurse -Force
 }
 
-Given "we have initialized a repository(?: with)" {
+Given "we have initialized a repository(?: with)?" {
     param($table)
 
     $script:repo = Convert-Path TestDrive:\
