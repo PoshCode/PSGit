@@ -1,4 +1,3 @@
-[![Stories in Ready](https://badge.waffle.io/poshcode/psgit.png?label=ready&title=Ready)](https://waffle.io/poshcode/psgit)
 # PSGit
 
 A PowerShell implementation of Git, providing a new command-line interface and object pipeline.
@@ -13,5 +12,9 @@ Therefore, we want you to [get involved](CONTRIBUTING.md)!
 
 ## Current project build status
 
-| **master** | [![master status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/master?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/master) |
-| **dev** | [![dev status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/dev?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/dev) |
+Build      | Status
+---------- | ------
+**master** | [![master status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/master?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/master)
+**dev**    | [![dev status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/dev?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/dev)
+
+Task Board: [![Stories in Ready](https://badge.waffle.io/poshcode/psgit.png?label=ready&title=Ready)](https://waffle.io/poshcode/psgit)
