@@ -1,3 +1,5 @@
+[CmdletBinding()]
+param([switch]$Monitor)
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -5,6 +7,7 @@ $PSGit = Import-LocalizedData -BaseDirectory $PSScriptRoot\src -FileName PSGit.p
 
 $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 if(Test-Path $Release) {
+    Write-Verbose "DELETE $Release\"
     rm $Release -Recurse -Force -ErrorAction SilentlyContinue
 }
 
@@ -14,13 +17,26 @@ if(!(Test-Path Variable:global:LibGit2Sharp) -or !(Test-Path $global:LibGit2Shar
 }
 
 ## Copy Library Files
-$null = robocopy $(Split-Path $global:LibGit2Sharp) $Release\lib /MIR /NP /LOG:build.log
+$LibSource = $(Split-Path $global:LibGit2Sharp)
+Write-Verbose "COPY   $LibSource\"
+$null = robocopy $LibSource $Release\lib /MIR /NP /LOG:build.log
 if($LASTEXITCODE -gt 1) {
     throw "Failed to copy Libraries (${LASTEXITCODE}), see build.log for details"
 }
 ## Copy Source Files
-## TODO: use /MON:1 on the last robocopy task to keep the build up to date on every save...
+Write-Verbose "COPY   $PSScriptRoot\src\"
 $null = robocopy $PSScriptRoot\src\  $Release /E /NP /LOG+:build.log
 if($LASTEXITCODE -ne 3) {
     throw "Failed to copy Module (${LASTEXITCODE}), see build.log for details"
+}
+
+## TODO: Use Grunt or write something native to handle this
+#        The robocopy solution has a resolution of 1 minute...
+if($Monitor) {
+    Start-Job -Name PSGitBuild {
+        param($ReleasePath, $SourcePath=$(Split-Path $ReleasePath))
+        Set-Location $SourcePath
+        [Environment]::CurrentDirectory = $SourcePath
+        robocopy $SourcePath\src\ $ReleasePath /E /NP /MON:1
+    } -ArgumentList $Release
 }

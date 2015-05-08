@@ -36,7 +36,7 @@ To build, just run:
 
 And then follow up by running the tests:
 
-     .\Test
+    .\Test
 
 This script will download libgit2sharp (and any other dependencies we add in the future), and then create a version-number folder (e.g. "1.0") and copy all the module code to it. 
 
