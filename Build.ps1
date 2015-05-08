@@ -8,6 +8,11 @@ if(Test-Path $Release) {
     rm $Release -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+## Find Library Files
+if(!(Test-Path Variable:global:LibGit2Sharp) -or !(Test-Path $global:LibGit2Sharp)) {
+    $global:LibGit2Sharp = Resolve-Path $PSScriptRoot\packages\libgit2sharp\lib\*\LibGit2Sharp.dll -ErrorAction SilentlyContinue
+}
+
 ## Copy Library Files
 $null = robocopy $(Split-Path $global:LibGit2Sharp) $Release\lib /MIR /NP /LOG:build.log
 if($LASTEXITCODE -gt 1) {
