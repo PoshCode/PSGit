@@ -1,5 +1,3 @@
-Import-Module PSGit -Force
-
 Given "we have a command ([\w-]+)" {
     param($command)
     $script:command = Get-Command $command -Module PSGit
