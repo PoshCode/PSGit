@@ -1,0 +1,13 @@
+install: 
+    - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
+
+build: false
+
+build_script:
+    - ps: .\Build.ps1
+
+test_script:
+    - ps: .\Test.ps1 # -Quiet
+
+on_finish:
+    - ps: .\Package.ps1 | % { Push-AppveyorArtifact $_.FullName }

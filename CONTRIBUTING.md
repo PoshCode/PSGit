@@ -2,7 +2,7 @@
 
 Thanks for taking an insterest in contributing to the PowerShell-enabled Git 
 
-First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for?
+First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for? (**install [this](http://oneget.org/install-oneget.exe)**)?
 
 ### Development
 
@@ -26,9 +26,17 @@ To get started, you need to clone the project with the `--recursive` switch in o
     git clone https://github.com/PoshCode/PSGit.git PSGit --recursive 
     git checkout dev
 
+The first time you set up, you need to install the LibGit2Sharp library, just run:
+
+	.\Setup
+
 To build, just run:
 
-    Build.ps1
+    .\Build
+
+And then follow up by running the tests:
+
+     .\Test
 
 This script will download libgit2sharp (and any other dependencies we add in the future), and then create a version-number folder (e.g. "1.0") and copy all the module code to it. 
 
@@ -36,7 +44,7 @@ NOTE: when contributing, you should not submit anything in the numbered folders,
 
 #### Running Tests
 
-To run the tests, you can just run the `Build.ps1` script (which skips `@wip` tests) or you can _run the full test suite_ by just invoking the gherkin test runner on the `/tests` subfolder:
+To run the tests, you can just run the `Test.ps1` script (which skips `@wip` tests) or you can _run the full test suite_ by just invoking the gherkin test runner on the `/tests` subfolder:
 
 	Invoke-Gherkin ./test
 
