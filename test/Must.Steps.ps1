@@ -187,13 +187,13 @@ function Must {
         [switch]
         ${CNotIn},
 
-        [Parameter(ParameterSetName='be a', Mandatory=$true)]
-        [Alias('BeA')]
+        [Parameter(ParameterSetName='be of type', Mandatory=$true)]
+        [Alias('BeOfType')]
         [switch]
         ${Is},
 
-        [Parameter(ParameterSetName='not be a', Mandatory=$true)]
-        [Alias('NotBeA')]
+        [Parameter(ParameterSetName='not be of type', Mandatory=$true)]
+        [Alias('NotBeOfType')]
         [switch]
         ${IsNot},
 
