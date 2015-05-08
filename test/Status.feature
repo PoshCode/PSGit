@@ -11,6 +11,16 @@ Feature: Get current repository status
         Then the output should be: "The path is not in a git repository!"
 
     @wip
+    Scenario: Get-GitStatus should have similar parameters to git status
+        Given we have a command Get-GitStatus
+        Then it should have parameters:
+            | Name           | Type   |
+            | Path           | String |
+            | ShowUntracked  | Switch |
+            | HideSubmodules | Switch |
+            | ShowIgnored    | Switch |
+
+    @wip
     Scenario: Empty Repository
         Given we have initialized a repository
         When Get-GitStatus is called
@@ -102,3 +112,4 @@ Feature: Get current repository status
             | Modified  | 1     |
         And the 1 untracked file name should be available
         And the 1 modified file name should be available
+

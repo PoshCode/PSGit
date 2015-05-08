@@ -1,5 +1,10 @@
 Import-Module PSGit -Force
 
+Given "we have a command ([\w-]+)" {
+    param($command)
+    $script:command = Get-Command $command -Module PSGit
+}
+
 Given "we are NOT in a repository" {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
@@ -73,6 +78,15 @@ Then "the output should have" {
     Pop-Location; [Environment]::CurrentDirectory = $Pwd
 
     foreach($Property in $Table) {
+        $result | Must -Any $Property.Property -Eq $Property.Value
+    }
+}
+
+Then "it should have parameters:" {
+    param($Table)
+
+
+    foreach($Parameter in $Table) {
         $result | Must -Any $Property.Property -Eq $Property.Value
     }
 }
