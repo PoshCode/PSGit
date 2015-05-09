@@ -83,8 +83,10 @@ Then "the output should have" {
 Then "it should have parameters:" {
     param($Table)
 
-
     foreach($Parameter in $Table) {
-        $result | Must -Any $Property.Property -Eq $Property.Value
+        if(!$command.Parameters.ContainsKey($Parameter.Name)) {
+            throw "Parameter $($Parameter.Name) does not exist"
+        }
+        $command.Parameters.($Parameter.Name) | Must ParameterType -eq ($Parameter.Type -as [Type])
     }
 }

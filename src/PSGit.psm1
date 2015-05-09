@@ -3,9 +3,9 @@ function Get-Status {
     [CmdletBinding()]
     param(
         [Parameter()]
-        $Path
+        [String]$Path
     )
-    process {
+    end {
         "The path is not in a git repository!"
     }
 }
