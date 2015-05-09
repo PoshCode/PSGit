@@ -6,7 +6,7 @@ function Get-Status {
         [String]$Path
     )
     end {
-        "The path is not in a git repository!"
+        Write-Warning "The path is not in a git repository!"
     }
 }
 
@@ -14,9 +14,9 @@ function Get-Info {
     [CmdletBinding()]
     param(
         [Parameter()]
-        $Path
+        [String]$Path
     )
     process {
-        "The path is not in a git repository!"
+        Write-Warning "The path is not in a git repository!"
     }
 }

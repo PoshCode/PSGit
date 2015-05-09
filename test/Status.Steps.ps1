@@ -38,14 +38,18 @@ Given "we have initialized a repository(?: with)?" {
                     git commit -m "$($change.Name)"
                 }
             }
-        }    
+        }
     }
 }
 
 
 When "Get-GitStatus (.*)? ?is called" {
     param($pathspec)
-    $script:result = Get-GitStatus $pathspec
+    $script:result = Get-GitStatus $pathspec -ErrorVariable script:errors -WarningVariable script:warnings 
+}
+When "Get-GitInfo (.*)? ?is called" {
+    param($pathspec)
+    $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings 
 }
 
 When "Add-GitItem (.*)? is called" {
@@ -55,17 +59,33 @@ When "Add-GitItem (.*)? is called" {
 }
 
 # This regex allows the step to be written as any of:
+# the output should be a warning: whatever
+# the output should be an error: whatever
 # the output should be: whatever
 # the output should be: 'whatever'
 # the output should be: "whatever"
 # the output should be: 
 #    """"multi-line string"""
-Then 'the output should be:(?:\s*(["''])?(?<output>.*)(\1))?' {
-    param($output)
+Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
+    param($output, $type = "default")
     # TODO: add "AFTER" support for Gherkin so we can do this:
     Pop-Location; [Environment]::CurrentDirectory = $Pwd
+    switch($type) {
+        "warning" {
+            $script:warnings | % { $_.ToString() } | Must -ceq $output
+        }
+        "error" {
+            $script:errors | % { $_.ToString() }| Must -ceq $output
+        }
+        default {
+            $script:result | % { $_.ToString() }| Must -ceq $output
+        }
+    }
 
-    $result | Must -ceq $output
+}
+
+Then "there should be no output" {
+    $script:result | Must -BeNullOrEmpty
 }
 
 Then "the output should have" {
@@ -76,7 +96,7 @@ Then "the output should have" {
     Pop-Location; [Environment]::CurrentDirectory = $Pwd
 
     foreach($Property in $Table) {
-        $result | Must -Any $Property.Property -Eq $Property.Value
+        $script:result | Must -Any $Property.Property -Eq $Property.Value
     }
 }
 
