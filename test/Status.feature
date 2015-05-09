@@ -1,14 +1,14 @@
-Feature: Get current repository status
-    Most of git we could use from the old git binary commands, however
+Feature: Get a list of file changes
     In order to customize our command prompts,
     The one thing we absolutely must have as objects is the status
-    The command name will get Get-GitStatus
+    We will have three commands for this:
+    Get-Status, Get-Info, and Show-Status (which will wrap the other two)
 
     # This is a freebie, so that there's something not @wip
     Scenario: There's no Repository
         Given we are NOT in a repository
         When Get-GitStatus is called
-        Then the output should be: "The path is not in a git repository!"
+        Then the output should be a warning: "The path is not in a git repository!"
 
     @wip
     Scenario: Get-GitStatus should have similar parameters to git status
@@ -18,14 +18,17 @@ Feature: Get current repository status
             | Path           | String |
 
     @wip
+    Scenario: Get-GitStatus should allow fetching only unstaged changes
+        Given we have a command Get-GitStatus
+        Then it should have parameters:
+            | Name         | Type   |
+            | UnstagedOnly | Switch |
+
+    @wip
     Scenario: Empty Repository
         Given we have initialized a repository
         When Get-GitStatus is called
-        Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
+        Then there should be no output
 
     @wip
     Scenario: New Files in Repository
@@ -35,16 +38,12 @@ Feature: Get current repository status
             | Created    | FileTwo.ps1   |
             | Created    | FileThree.ps1 |
         When Get-GitStatus is called
-        Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
-        And the count of changes should be
-            | State     | Count |
-            | Untracked | 3     |
-        And the 3 untracked file names should be available
-
+        Then the status of git should be
+            | Staged | Change | Name          |
+            | False  | Added  | FileOne.ps1   |
+            | False  | Added  | FileTwo.ps1   |
+            | False  | Added  | FileThree.ps1 |
+ 
     @wip
     Scenario: Added Files to Stage
         Given we have initialized a repository with
@@ -54,16 +53,12 @@ Feature: Get current repository status
             | Created    | FileThree.ps1 |
             | Added      | *             |
         When Get-GitStatus is called
-        Then the output should have
-            | Property | Value          |
-            | Branch   | master         |
-            | Summary  | 3 Added        |
-            | Note     | Initial Commit |
-        And the count of changes should be
-            | State | Count |
-            | Added | 3     |
-        And the 3 added file names should be available
-
+        Then the status of git should be
+            | Staged | Change | Name          |
+            | True   | Added  | FileOne.ps1   |
+            | True   | Added  | FileTwo.ps1   |
+            | True   | Added  | FileThree.ps1 |
+ 
     @wip
     Scenario: Added and Modified Files
         Given we have initialized a repository with
@@ -75,18 +70,14 @@ Feature: Get current repository status
             | Modified   | FileOne.ps1   |
             | Modified   | FileThree.ps1 |
         When Get-GitStatus is called
-        Then the output should have
-            | Property | Value               |
-            | Branch   | master              |
-            | Summary  | 3 Added, 2 Modified |
-            | Note     | Initial Commit      |
-        And the count of changes should be
-            | State          | Count |
-            | Added          | 1     |
-            | Added,Modified | 2     |
-        And the 3 added file names should be available
-        And the 2 modified file names should be available
-
+        Then the status of git should be
+            | Staged | Change   | Name          |
+            | True   | Added    | FileOne.ps1   |
+            | True   | Added    | FileTwo.ps1   |
+            | True   | Added    | FileThree.ps1 |
+            | False  | Modified | FileThree.ps1 |
+            | False  | Modified | FileOne.ps1   |
+ 
     @wip
     Scenario: Added, Commited and Modified Files
         Given we have initialized a repository with
@@ -99,14 +90,8 @@ Feature: Get current repository status
             | Created    | FileThree.ps1  |
             | Modified   | FileThree.ps1  |
         When Get-GitStatus is called
-        Then the output should have
-            | Property | Value                   |
-            | Branch   | master                  |
-            | Summary  | 1 Modified, 1 Untracked |
-        And the count of changes should be
-            | State     | Count |
-            | Untracked | 1     |
-            | Modified  | 1     |
-        And the 1 untracked file name should be available
-        And the 1 modified file name should be available
-
+        Then the status of git should be
+            | Staged | Change   | Name          |
+            | False  | Modified | FileTwo.ps1   |
+            | False  | Added    | FileThree.ps1 |
+ 
