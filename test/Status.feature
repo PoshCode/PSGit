@@ -10,14 +10,12 @@ Feature: Get current repository status
         When Get-GitStatus is called
         Then the output should be: "The path is not in a git repository!"
 
+    @wip
     Scenario: Get-GitStatus should have similar parameters to git status
         Given we have a command Get-GitStatus
         Then it should have parameters:
             | Name           | Type   |
             | Path           | String |
-            | ShowUntracked  | Switch |
-            | HideSubmodules | Switch |
-            | ShowIgnored    | Switch |
 
     @wip
     Scenario: Empty Repository
