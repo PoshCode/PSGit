@@ -3,6 +3,7 @@ Feature: Get repository status
     And know if what branch we're on, and whether changes have been made upstream
     We need a Get-Info command which returns information about the repository and its remotes
 
+
     Scenario: There's no Repository
         When Get-GitInfo is called
         Then the output should be a warning: "The path is not in a git repository!"
@@ -12,10 +13,9 @@ Feature: Get repository status
         Given we have initialized a repository
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
+            | Property | Value          |
+            | Branch   | master         |
+            | Note     | Initial Commit |
 
     @wip
     Scenario: New Files in Repository
@@ -26,10 +26,9 @@ Feature: Get repository status
             | Created    | FileThree.ps1 |
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value             |
-            | Branch   | master            |
-            | Summary  | Nothing to commit |
-            | Note     | Initial Commit    |
+            | Property | Value          |
+            | Branch   | master         |
+            | Note     | Initial Commit |
 
     @wip
     Scenario: Added Files to Stage
@@ -43,7 +42,6 @@ Feature: Get repository status
         Then the output should have
             | Property | Value          |
             | Branch   | master         |
-            | Summary  | 3 Added        |
             | Note     | Initial Commit |
 
     @wip
@@ -58,10 +56,9 @@ Feature: Get repository status
             | Modified   | FileThree.ps1 |
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value               |
-            | Branch   | master              |
-            | Summary  | 3 Added, 2 Modified |
-            | Note     | Initial Commit      |
+            | Property | Value          |
+            | Branch   | master         |
+            | Note     | Initial Commit |
 
     @wip
     Scenario: Added, Commited and Modified Files
@@ -74,9 +71,8 @@ Feature: Get repository status
             | Modified   | FileOne.ps1    |
             | Created    | FileThree.ps1  |
             | Modified   | FileThree.ps1  |
-        When Get-GitStatus is called
+        When Get-GitInfo is called
         Then the output should have
-            | Property | Value                   |
-            | Branch   | master                  |
-            | Summary  | 1 Modified, 1 Untracked |
+            | Property | Value  |
+            | Branch   | master |
 

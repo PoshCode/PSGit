@@ -24,11 +24,16 @@ Given "we have initialized a repository(?: with)?" {
         foreach($change in $table) {
             switch($change.FileAction) {
                 "Created" {
-                    New-Item $change.Name -Item File
+                    Set-Content $change.Name (Get-Date)
                 }
                 "Added" {
                     # TODO: replace with PSGit native commands
                     git add --all $pathspec
+                }
+                "Ignore" {
+                    # TODO: replace with PSGit native commands
+                    Add-Content .gitignore $change.Name
+                    git add .\.gitignore
                 }
                 "Modified" {
                     Add-Content $change.Name (Get-Date)
@@ -37,19 +42,40 @@ Given "we have initialized a repository(?: with)?" {
                     # TODO: replace with PSGit native commands
                     git commit -m "$($change.Name)"
                 }
+                "Removed" {
+                    Remove-Item $change.Name
+                }
+                "Renamed" {
+                    Rename-Item $change.Name $change.Value
+                }
             }
         }
     }
 }
 
 
-When "Get-GitStatus (.*)? ?is called" {
+When "Get-GitChange (.*)? ?is called" {
     param($pathspec)
-    $script:result = Get-GitStatus $pathspec -ErrorVariable script:errors -WarningVariable script:warnings 
+    $newspec = $pathspec -replace "-ShowIgnored"
+
+    $Options = @{}
+    if($newspec -ne $pathspec) {
+        $pathspec = $newspec
+        $Options.ShowIgnored = $true
+    }    
+
+    $newspec = $pathspec -replace "-HideSubmodules"
+    if($newspec -ne $pathspec) {
+        $pathspec = $newspec
+        $Options.HideSubmodules = $true
+    }   
+    
+
+    $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options
 }
 When "Get-GitInfo (.*)? ?is called" {
     param($pathspec)
-    $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings 
+    $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
 }
 
 When "Add-GitItem (.*)? is called" {
@@ -85,7 +111,12 @@ Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>
 }
 
 Then "there should be no output" {
-    $script:result | Must -BeNullOrEmpty
+    # TODO: add "AFTER" support for Gherkin so we can do this:
+    Pop-Location; [Environment]::CurrentDirectory = $Pwd
+
+    $script:result   | Must -BeNullOrEmpty
+    $script:warnings | Must -BeNullOrEmpty
+    $script:errors   | Must -BeNullOrEmpty
 }
 
 Then "the output should have" {
@@ -109,4 +140,13 @@ Then "it should have parameters:" {
         }
         $command.Parameters.($Parameter.Name) | Must ParameterType -eq ($Parameter.Type -as [Type])
     }
+}
+
+Then "the status of git should be" {
+
+    # TODO: add "AFTER" support for Gherkin so we can do this:
+    Pop-Location; [Environment]::CurrentDirectory = $Pwd
+
+    Write-ERROR "TEST NOT IMPLEMENTED"
+
 }
