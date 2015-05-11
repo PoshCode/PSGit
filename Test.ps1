@@ -38,11 +38,19 @@ $script:failedTestsCount = 0
 $script:passedTestsCount = 0
 foreach($result in $TestResults)
 {
-    if($result)
+    if($result -and $result.CodeCoverage.NumberOfCommandsAnalyzed -gt 0)
     {
         $script:failedTestsCount += $result.FailedCount 
         $script:passedTestsCount += $result.PassedCount 
         $CodeCoverageTitle = 'Code Coverage {0:F1}%'  -f (100 * ($result.CodeCoverage.NumberOfCommandsExecuted / $result.CodeCoverage.NumberOfCommandsAnalyzed))
+
+        # Map file paths, e.g.: \1.0 back to \src
+        for($i=0; $i -lt $TestResults.CodeCoverage.HitCommands.Count; $i++) {
+            $TestResults.CodeCoverage.HitCommands[$i].File = $TestResults.CodeCoverage.HitCommands[$i].File.Replace($Release, $SourcePath)
+        }
+        for($i=0; $i -lt $TestResults.CodeCoverage.MissedCommands.Count; $i++) {
+            $TestResults.CodeCoverage.MissedCommands[$i].File = $TestResults.CodeCoverage.MissedCommands[$i].File.Replace($Release, $SourcePath)
+        }
 
         if($result.CodeCoverage.MissedCommands.Count -gt 0) {
             $result.CodeCoverage.MissedCommands |
@@ -52,7 +60,7 @@ foreach($result in $TestResults)
         if(${ENV:CodeCovIoToken})
         {
             Write-Verbose "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
-            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
+            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -Token ${ENV:CodeCovIoToken}
             Write-Verbose $response.message -Verbose:(!$Quiet)
         }
     }
