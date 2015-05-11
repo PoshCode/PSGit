@@ -12,3 +12,9 @@ test_script:
   - ps: .\Test.ps1 # -Quiet
 on_finish:
   - ps: .\Package.ps1 -Verbose | % { Push-AppveyorArtifact $_.FullName }
+notifications:
+  - profider: Slack
+  	auth_token:
+  	  secure: 1S3E8mVpvHEpdXsgHot0Qc0yUnU8ka/yd6Kex7r7yIZmSPwkMDIJEvdf/WMMTb/g
+  	channel: poshcode
+  	template: "<{{buildUrl}}|Build {{projectName}} {{buildVersion}} {{status}}> Commit <{{commitUrl}}|{{commitId}}> by {{commitAuthor}} on {{commitDate}}: _{{commitMessage}}_"
