@@ -5,8 +5,9 @@ param(
     $FailLimit=0
 )
 $TestPath = Join-Path $PSScriptRoot Test
-$OutputPath = Join-Path $PSScriptRoot output
 $SourcePath = Join-Path $PSScriptRoot src
+$OutputPath = Join-Path $PSScriptRoot output
+$null = mkdir $OutputPath -Force
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -19,9 +20,7 @@ Write-Verbose "TESTING $($PSGit.ModuleVersion) build $ENV:APPVEYOR_BUILD_VERSION
 
 $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 
-if(!(Test-Path $OutputPath)) {
-    $null = mkdir $OutputPath -Force
-}
+
 
 Write-Verbose "Import-Module $Release\PSGit.psd1" -Verbose:(!$Quiet)
 Import-Module $Release\PSGit.psd1

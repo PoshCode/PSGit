@@ -24,7 +24,7 @@ param(
     [String]$Branch = ${env:APPVEYOR_REPO_BRANCH},
 
     [ValidateNotNullOrEmpty()]
-    [String]$JobId = ${ENV:APPVEYOR_JOB_ID}
+    [String]$JobId = ${ENV:APPVEYOR_BUILD_NUMBER}
 )
 process {
     Write-Verbose -Verbose "RepositoryRoot: $RepositoryRoot"
