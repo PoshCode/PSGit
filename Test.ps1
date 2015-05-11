@@ -57,9 +57,9 @@ foreach($result in $TestResults)
     }
 }
 
-if((Test-Path $Options.OutputFile)) {
+if(${ENV:APPVEYOR_JOB_ID} -and (Test-Path $Options.OutputFile)) {
     $wc = New-Object 'System.Net.WebClient'
-    $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $Options.OutputFile)
+    $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
 }
 
 if($FailedTestsCount -gt $FailLimit) {

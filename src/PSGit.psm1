@@ -37,7 +37,7 @@ function Get-Change {
             return
         }
 
-        $PathSpec = $PathSpec | Where { $_.Trim().Length -gt 0 }
+        $PathSpec = $PathSpec | Where { "$_".Trim().Length -gt 0 }
 
         try {
             $repo = New-Object LibGit2Sharp.Repository $Path
@@ -62,45 +62,81 @@ function Get-Change {
 
         # Output staged changes, if any
         foreach($file in $status.Added) {
-            New-Object PSCustomObject -Property @{ Staged = $true; Change = "Added"; Path = $file.FilePath }
+            New-Object PSCustomObject -Property @{ 
+                Staged = $true; 
+                Change = "Added"; 
+                Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+            }
         }
         foreach($file in $status.RenamedInIndex) {
-            New-Object PSCustomObject -Property @{ Staged = $true; Change = "Renamed"; Path = $file.FilePath }
+            New-Object PSCustomObject -Property @{ 
+                Staged = $true; 
+                Change = "Renamed"; 
+                Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+            }
         }
         foreach($file in $status.Removed) {
-            New-Object PSCustomObject -Property @{ Staged = $true; Change = "Removed"; Path = $file.FilePath }
+            New-Object PSCustomObject -Property @{ 
+                Staged = $true; 
+                Change = "Removed"; 
+                Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+            }
         }
         foreach($file in $status.Staged) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
-            if(($file.State -band "RenamedInIndex") -eq 0) {
-                New-Object PSCustomObject -Property @{ Staged = $true; Change = "Modified"; Path = $file.FilePath }
+            if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInIndex) -eq 0) {
+                New-Object PSCustomObject -Property @{ 
+                    Staged = $true; 
+                    Change = "Modified"; 
+                    Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                }
             }
         }
 
         # Output unstaged changes, if any
         foreach($file in $status.RenamedInWorkDir) {
-            New-Object PSCustomObject -Property @{ Staged = $false; Change = "Renamed"; Path = $file.FilePath }
+            New-Object PSCustomObject -Property @{ 
+                Staged = $false; 
+                Change = "Renamed"; 
+                Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+            }
         }
         foreach($file in $status.Modified) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
-            if(($file.State -band "RenamedInWorkDir") -eq 0) {
-                New-Object PSCustomObject -Property @{ Staged = $false; Change = "Modified"; Path = $file.FilePath }
+            if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInWorkDir) -eq 0) {
+                New-Object PSCustomObject -Property @{ 
+                    Staged = $false; 
+                    Change = "Modified"; 
+                    Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                }
             }
         }
         foreach($file in $status.Missing) {
-            New-Object PSCustomObject -Property @{ Staged = $false; Change = "Removed"; Path = $file.FilePath }
+            New-Object PSCustomObject -Property @{ 
+                Staged = $false; 
+                Change = "Removed"; 
+                Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+            }
         }
 
         if(!$HideUntracked) {
             foreach($file in $status.Untracked) {
-                New-Object PSCustomObject -Property @{ Staged = $false; Change = "Added"; Path = $file.FilePath }
+                New-Object PSCustomObject -Property @{ 
+                    Staged = $false; 
+                    Change = "Added"; 
+                    Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                }
             }
         }
 
         # Optional output
         if($ShowIgnored) {
             foreach($file in $status.Ignored) {
-                New-Object PSCustomObject -Property @{ Staged = $false; Change = "Ignored"; Path = $file.FilePath }
+                New-Object PSCustomObject -Property @{ 
+                    Staged = $false; 
+                    Change = "Ignored"; 
+                    Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                }
             }
         }
     }

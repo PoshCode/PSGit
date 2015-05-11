@@ -17,6 +17,10 @@ Given "we have initialized a repository(?: with)?" {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
+
+    # Clear out any old stuff when we're asked to "initialize" a repository...
+    Remove-Item TestDrive:\* -Recurse -Force
+
     # TODO: replace with PSGit native commands
     git init
 
@@ -34,6 +38,7 @@ Given "we have initialized a repository(?: with)?" {
                     # TODO: replace with PSGit native commands
                     Add-Content .gitignore $change.Name
                     git add .\.gitignore
+                    git commit -m "Ignore $($change.Name)"
                 }
                 "Modified" {
                     Add-Content $change.Name (Get-Date)
@@ -53,6 +58,12 @@ Given "we have initialized a repository(?: with)?" {
     }
 }
 
+Given "we have added a submodule `"(\w+)`"" {
+    param($module)
+    # TODO: replace with PSGit native commands
+    Write-Host $PWD -Fore Magenta
+    git submodule add https://github.com/PoshCode/PSGit.git $module
+}
 
 When "Get-GitChange (.*)? ?is called" {
     param($pathspec)
@@ -143,10 +154,20 @@ Then "it should have parameters:" {
 }
 
 Then "the status of git should be" {
-
+    param($Table)
     # TODO: add "AFTER" support for Gherkin so we can do this:
-    Pop-Location; [Environment]::CurrentDirectory = $Pwd
+    trap {
+        Write-Warning $($Result | Out-String)
+        Write-Warning $(gci $Pwd.Path | Out-String)
+        throw $_
+    }
 
-    Write-ERROR "TEST NOT IMPLEMENTED"
-
+    for($f =0; $f -lt $Result.Count; $f++) {
+        # Staged | Change  | Path
+        $R = $Result[$f] 
+        $T = $Table[$f]
+        $R | Must Path   -eq $T.Path
+        $R | Must Staged -eq ($T.Staged -eq "True")
+        $R | Must Change -eq $T.Change
+    }
 }
