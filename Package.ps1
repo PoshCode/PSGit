@@ -1,5 +1,8 @@
 [CmdletBinding()]
 param()
+$OutputPath = Join-Path $PSScriptRoot output
+$null = mkdir $OutputPath -Force
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -9,14 +12,13 @@ Write-Verbose "PACKAGING $($PSGit.ModuleVersion) build $ENV:APPVEYOR_BUILD_VERSI
 $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 
 Write-Verbose "COPY   $Release\"
-$null = robocopy $Release .\PSGit /MIR /NP /LOG+:build.log
+$null = robocopy $Release $OutputPath\PSGit /MIR /NP /LOG+:"$OutputPath\build.log"
 
-$zipFile = Join-Path $Pwd PSGit.zip
+$zipFile = Join-Path $OutputPath "PSGit-$($PSGit.ModuleVersion).zip"
 Add-Type -assemblyname System.IO.Compression.FileSystem
-
+Remove-Item $zipFile -ErrorAction SilentlyContinue
 Write-Verbose "ZIP    $zipFile"
-[System.IO.Compression.ZipFile]::CreateFromDirectory((Join-Path $Pwd PSGit), $zipFile)
+[System.IO.Compression.ZipFile]::CreateFromDirectory((Join-Path $OutputPath PSGit), $zipFile)
 
 # You can add other artifacts here
-ls $zipFile
-ls build.log
+ls $OutputPath -File

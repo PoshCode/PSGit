@@ -1,16 +1,14 @@
-install: 
-    - git submodule update --init 
-    - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
-
 version: 1.0.0.{build}
-
+environment:
+  CodeCovIoToken:
+    secure: rsFxWQLZS6IIliwfOn/YG3hnT/cgWPycvTqP2Ao6zkSlo0RGmCrlOv5H/O1Y0l8
 build: false
-
+install: 
+  - git submodule update --init 
+  - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
 build_script:
-    - ps: .\Build.ps1 -Verbose 
-
+  - ps: .\Build.ps1 -Verbose 
 test_script:
-    - ps: .\Test.ps1 # -Quiet
-
+  - ps: .\Test.ps1 # -Quiet
 on_finish:
-    - ps: .\Package.ps1 -Verbose | % { Push-AppveyorArtifact $_.FullName }
+  - ps: .\Package.ps1 -Verbose | % { Push-AppveyorArtifact $_.FullName }

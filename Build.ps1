@@ -1,5 +1,9 @@
 [CmdletBinding()]
 param([switch]$Monitor)
+
+$OutputPath = Join-Path $PSScriptRoot output
+$null = mkdir $OutputPath -Force
+
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
@@ -19,13 +23,13 @@ if(!(Test-Path Variable:global:LibGit2Sharp) -or !(Test-Path $global:LibGit2Shar
 ## Copy Library Files
 $LibSource = $(Split-Path $global:LibGit2Sharp)
 Write-Verbose "COPY   $LibSource\"
-$null = robocopy $LibSource $Release\lib /MIR /NP /LOG:build.log
+$null = robocopy $LibSource $Release\lib /MIR /NP /LOG:"$OutputPath\build.log"
 if($LASTEXITCODE -gt 1) {
     throw "Failed to copy Libraries (${LASTEXITCODE}), see build.log for details"
 }
 ## Copy Source Files
 Write-Verbose "COPY   $PSScriptRoot\src\"
-$null = robocopy $PSScriptRoot\src\  $Release /E /NP /LOG+:build.log
+$null = robocopy $PSScriptRoot\src\  $Release /E /NP /LOG+:"$OutputPath\build.log"
 if($LASTEXITCODE -ne 3) {
     throw "Failed to copy Module (${LASTEXITCODE}), see build.log for details"
 }

@@ -236,7 +236,18 @@ begin
                 $InputObject = $PSBoundParameters['InputObject'] = New-Object PSObject -Property @{ "Value" = $InputObject }
             }
         }
-
+        <#
+        if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 1 -EA 0).Value)) {
+            if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 2 -EA 0).Value)) {
+                if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 3 -EA 0).Value)) {
+                    if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 4 -EA 0).Value)) {
+                        $Cmdlet = $PSCmdlet
+                    }
+                }
+            }
+        }
+        #>
+        $Cmdlet = $PSCmdlet
         $ThrowMessage = {
             if(!$_) {
                 $message = @("TestObject", $Property, "must")
@@ -247,7 +258,9 @@ begin
                 $message += "'$($Value -join "','")'"
                 $message += if($NoProperty) { "-- Actual: '" + $InputObject + "'" } else { "-- Actual: '" + $InputObject.$Property + "'" }
 
-                throw $message
+                $exception = New-Object AggregateException ($message -join " ")
+                $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, "FailedMust", "LimitsExceeded", $message
+                $Cmdlet.ThrowTerminatingError($errorRecord)
             }
         }
 
