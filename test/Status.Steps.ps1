@@ -67,7 +67,7 @@ Given "we have initialized a repository(?: with)?" {
 Given "we have added a submodule `"(\w+)`"" {
     param($module)
     # TODO: replace with PSGit native commands
-    git submodule add https://github.com/PoshCode/PSGit.git $module
+    git submodule add https://github.com/PoshCode/PSGit.git $module 2>&1
 }
 
 When "Get-GitChange (.*)? ?is called" {
