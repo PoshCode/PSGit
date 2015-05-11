@@ -12,9 +12,9 @@ Therefore, we want you to [get involved](CONTRIBUTING.md)!
 
 ## Current project build status
 
-Build      | Status
----------- | ------
-**master** | [![master status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/master?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/master)
-**dev**    | [![dev status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/dev?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/dev)
+Build      | Status | Coverage 
+---------- | ------ | --------
+**master** | [![master status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/master?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/master) | [![codecov.io](http://codecov.io/github/PoshCode/PSGit/coverage.svg?branch=master)](http://codecov.io/github/PoshCode/PSGit?branch=master)
+**dev**    | [![dev status](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/dev?svg=true)](https://ci.appveyor.com/project/Jaykul/psgit/branch/dev) | [![codecov.io](http://codecov.io/github/PoshCode/PSGit/coverage.svg?branch=dev)](http://codecov.io/github/PoshCode/PSGit?branch=dev)
 
 Task Board: [![Stories in Ready](https://badge.waffle.io/poshcode/psgit.png?label=ready&title=Ready)](https://waffle.io/poshcode/psgit)
