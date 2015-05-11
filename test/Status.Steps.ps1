@@ -1,6 +1,8 @@
-git config --global user.email "nobody@nowhere.com"
-git config --global user.name "Nobody Important"
-git config --global core.autocrlf "true"
+if(!(git config --get user.email)) {
+    git config --global user.email "Anonymous@PoshCode.org"
+    git config --global user.name "Nobody Important"
+    git config --global core.autocrlf "true"
+}
 
 Given "we have a command ([\w-]+)" {
     param($command)

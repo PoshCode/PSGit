@@ -21,7 +21,10 @@ param(
     [String]$Token,
 
     [ValidateNotNullOrEmpty()]
-    [String]$Branch = $env:APPVEYOR_REPO_BRANCH
+    [String]$Branch = ${env:APPVEYOR_REPO_BRANCH},
+
+    [ValidateNotNullOrEmpty()]
+    [String]$JobId = ${ENV:APPVEYOR_JOB_ID}
 )
 process {
     Write-Verbose -Verbose "RepositoryRoot: $RepositoryRoot"
@@ -178,13 +181,14 @@ process {
     $commit = $commitOutput[0] 
 
     Write-Verbose "Branch: $branch"
+    Write-Verbose "JobId: $JobId"
     
     $json =$result | ConvertTo-Json
     Write-Verbose "Encoding output using: $Encoding" -Verbose
     $json = $json.Replace('"!null!"','null') 
     $json | out-file $OutputPath\CodeCov.json
     if($token) {
-        $jsonPostUri = "https://codecov.io/upload/v1?token=$token&commit=$commit&branch=$branch&travis_job_id=12345"
+        $jsonPostUri = "https://codecov.io/upload/v1?token=$token&commit=$commit&branch=$branch&travis_job_id=$jobId"
         Invoke-RestMethod -Method Post -Uri $jsonPostUri -Body $json -ContentType 'application/json'
     }
 }

@@ -52,14 +52,16 @@ foreach($result in $TestResults)
         }
         if(${ENV:CodeCovIoToken})
         {
-            &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
+            Write-Verbose "Sending CI Code-Coverage Results"
+            $output = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
+            Write-Verbose $ouput.message
         }
     }
 }
 
 if(${ENV:APPVEYOR_JOB_ID} -and (Test-Path $Options.OutputFile)) {
     $wc = New-Object 'System.Net.WebClient'
-    $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
+    $result = $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
 }
 
 if($FailedTestsCount -gt $FailLimit) {
