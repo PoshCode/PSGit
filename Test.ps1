@@ -2,7 +2,16 @@
 param(
     [Switch]$Quiet,
     [Switch]$ShowWip,
-    $FailLimit=0
+    $FailLimit=0,
+    
+    [ValidateNotNullOrEmpty()]    
+    [String]$JobID = ${Env:APPVEYOR_JOB_ID},
+
+    [ValidateNotNullOrEmpty()]
+    [String]$BuildVersion = ${Env:APPVEYOR_BUILD_VERSION},
+
+    [ValidateNotNullOrEmpty()]
+    [String]$CodeCovToken = ${ENV:CODECOV_TOKEN}
 )
 $TestPath = Join-Path $PSScriptRoot Test
 $SourcePath = Join-Path $PSScriptRoot src
@@ -16,7 +25,7 @@ Write-Verbose "Import-Module $PSScriptRoot\lib\Pester" -Verbose:(!$Quiet)
 Import-Module $PSScriptRoot\lib\Pester -Force
 
 $PSGit = Import-LocalizedData -BaseDirectory $PSScriptRoot\src -FileName PSGit.psd1
-Write-Verbose "TESTING $($PSGit.ModuleVersion) build $ENV:APPVEYOR_BUILD_VERSION" -Verbose:(!$Quiet)
+Write-Verbose "TESTING $($PSGit.ModuleVersion) build $BuildVersion" -Verbose:(!$Quiet)
 
 $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 
@@ -55,24 +64,26 @@ foreach($result in $TestResults)
         if($result.CodeCoverage.MissedCommands.Count -gt 0) {
             $result.CodeCoverage.MissedCommands |
                 ConvertTo-FormattedHtml -title $CodeCoverageTitle | 
-                Out-File (Join-Path $OutputPath "CodeCoverage-${ENV:APPVEYOR_BUILD_VERSION}.html")
+                Out-File (Join-Path $OutputPath "CodeCoverage-${BuildVersion}.html")
         }
-        if(${ENV:CodeCovIoToken})
+        if(${CodeCovToken})
         {
             Write-Verbose "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
-            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -Token ${ENV:CodeCovIoToken}
+            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -Token ${CodeCovToken}
             Write-Verbose $response.message -Verbose:(!$Quiet)
         }
     }
 }
 
-if(${ENV:APPVEYOR_JOB_ID} -and (Test-Path $Options.OutputFile)) {
-    Write-Verbose "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
-    $wc = New-Object 'System.Net.WebClient'
-    $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
-    Write-Verbose ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
-} else {
-    Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
+if(${JobID}) {
+    if(Test-Path $Options.OutputFile) {
+        Write-Verbose "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
+        $wc = New-Object 'System.Net.WebClient'
+        $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit/${JobID}", $Options.OutputFile)
+        Write-Verbose ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
+    } else {
+        Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
+    }
 }
 
 if($FailedTestsCount -gt $FailLimit) {

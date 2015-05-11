@@ -1,6 +1,6 @@
 version: 1.0.0.{build}
 environment:
-  CodeCovIoToken:
+  CODECOV_TOKEN:
     secure: rsFxWQLZS6IIliwfOn/YG3hnT/cgWPycvTqP2Ao6zkSlo0RGmCrlOv5H/O1Y0l8
 build: false
 install: 

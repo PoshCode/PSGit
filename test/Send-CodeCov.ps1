@@ -21,13 +21,13 @@ param(
     [String]$Token = ${Env:CODECOV_TOKEN},
 
     [ValidateNotNullOrEmpty()]
-    [String]$Branch = ${env:APPVEYOR_REPO_BRANCH},
+    [String]$Branch = ${Env:APPVEYOR_REPO_BRANCH},
 
     [ValidateNotNullOrEmpty()]
-    [String]$JobId = ${ENV:APPVEYOR_BUILD_NUMBER}, 
+    [String]$JobId = ${Env:APPVEYOR_BUILD_NUMBER}, 
 
     [ValidateNotNullOrEmpty()]
-    [String]$CommitId = ${ENV:APPVEYOR_REPO_COMMIT}
+    [String]$CommitId = ${Env:APPVEYOR_REPO_COMMIT}
 )
 process {
     Write-Verbose -Verbose "RepositoryRoot: $RepositoryRoot"

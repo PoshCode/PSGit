@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [ValidateNotNullOrEmpty()]
+    [String]$BuildVersion = ${Env:APPVEYOR_BUILD_VERSION}
+)
 $OutputPath = Join-Path $PSScriptRoot output
 $null = mkdir $OutputPath -Force
 
@@ -7,7 +10,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $PSGit = Import-LocalizedData -BaseDirectory $PSScriptRoot\src -FileName PSGit.psd1
-Write-Verbose "PACKAGING $($PSGit.ModuleVersion) build $ENV:APPVEYOR_BUILD_VERSION"
+Write-Verbose "PACKAGING $($PSGit.ModuleVersion) build ${BuildVersion}"
 
 $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 
