@@ -53,7 +53,7 @@ foreach($result in $TestResults)
         {
             Write-Verbose "Sending CI Code-Coverage Results"
             $output = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
-            Write-Verbose $ouput.message
+            Write-Verbose $output.message
         }
     }
 }
