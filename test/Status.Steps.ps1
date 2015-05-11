@@ -1,3 +1,7 @@
+git config --global user.email "nobody@nowhere.com"
+git config --global user.name "Nobody Important"
+git config --global core.autocrlf "true"
+
 Given "we have a command ([\w-]+)" {
     param($command)
     $script:command = Get-Command $command -Module PSGit
@@ -61,7 +65,6 @@ Given "we have initialized a repository(?: with)?" {
 Given "we have added a submodule `"(\w+)`"" {
     param($module)
     # TODO: replace with PSGit native commands
-    Write-Host $PWD -Fore Magenta
     git submodule add https://github.com/PoshCode/PSGit.git $module
 }
 
@@ -157,8 +160,8 @@ Then "the status of git should be" {
     param($Table)
     # TODO: add "AFTER" support for Gherkin so we can do this:
     trap {
-        Write-Warning $($Result | Out-String)
-        Write-Warning $(gci $Pwd.Path | Out-String)
+        Write-Warning $($Result | ft -auto | Out-String)
+        Write-Warning $(git status)
         throw $_
     }
 
