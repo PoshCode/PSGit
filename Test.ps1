@@ -62,7 +62,7 @@ if(${ENV:APPVEYOR_JOB_ID} -and (Test-Path $Options.OutputFile)) {
     Write-Verbose "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
     $wc = New-Object 'System.Net.WebClient'
     $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
-    Write-Verbose ([System.Text.Encoding.ASCII]::GetString($response)) -Verbose:(!$Quiet)
+    Write-Verbose ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
 } else {
     Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
 }
