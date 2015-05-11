@@ -51,16 +51,20 @@ foreach($result in $TestResults)
         }
         if(${ENV:CodeCovIoToken})
         {
-            Write-Verbose "Sending CI Code-Coverage Results"
-            $output = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
-            Write-Verbose $output.message
+            Write-Verbose "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
+            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -token ${ENV:CodeCovIoToken}
+            Write-Verbose $response.message -Verbose:(!$Quiet)
         }
     }
 }
 
 if(${ENV:APPVEYOR_JOB_ID} -and (Test-Path $Options.OutputFile)) {
+    Write-Verbose "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
     $wc = New-Object 'System.Net.WebClient'
-    $result = $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
+    $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/${ENV:APPVEYOR_JOB_ID}", $Options.OutputFile)
+    Write-Verbose ([System.Text.Encoding.ASCII]::GetString($response)) -Verbose:(!$Quiet)
+} else {
+    Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
 }
 
 if($FailedTestsCount -gt $FailLimit) {
