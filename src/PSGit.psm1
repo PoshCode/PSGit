@@ -1,3 +1,22 @@
+function Get-RootFolder {
+    #.Synopsis
+    #   Search up the directory tree recursively for a git root (and corresponding .git folder)
+    [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
+    param(
+        # Where to start searching
+        [Parameter()]
+        [String]$Root = $Pwd
+    )
+    end {        
+        # Git Repositories are File System Based, and don't care aabout PSDrives
+        $Path = Convert-Path $Root
+        while($Path -and !(Test-Path $Path\.git -Type Container)) {
+            $Path = Split-Path $Path 
+        }
+        return $Path
+    }
+}
+
 # TODO: DOCUMENT ME 
 function Get-Change {
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
@@ -27,11 +46,7 @@ function Get-Change {
         $ShowIgnored        
     )
     end {
-        # Git Repositories are File System Based, and don't care aabout PSDrives
-        $Path = Convert-Path $Root
-        while($Path -and !(Test-Path $Path\.git -Type Container)) {
-            $Path = Split-Path $Path 
-        }
+        $Path = Get-RootFolder $Root
         if(!$Path) {
             Write-Warning "The path is not in a git repository!"
             return
@@ -92,7 +107,6 @@ function Get-Change {
                 }
             }
         }
-
         # Output unstaged changes, if any
         foreach($file in $status.RenamedInWorkDir) {
             New-Object PSCustomObject -Property @{ 
@@ -118,7 +132,6 @@ function Get-Change {
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
-
         if(!$HideUntracked) {
             foreach($file in $status.Untracked) {
                 New-Object PSCustomObject -Property @{ 
@@ -128,7 +141,6 @@ function Get-Change {
                 }
             }
         }
-
         # Optional output
         if($ShowIgnored) {
             foreach($file in $status.Ignored) {
@@ -142,6 +154,22 @@ function Get-Change {
     }
 }
 
+function Get-Info {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [String]$Path
+    )
+    end {
+        $Path = Get-RootFolder $Root
+        if(!$Path) {
+            Write-Warning "The path is not in a git repository!"
+            return
+        }
+    }
+}
+
+
 # For PSTypes??
 # Update-TypeData -TypeName LibGit2Sharp.StatusEntry -MemberType ScriptMethod -MemberName ToString -Value { $this.FilePath }
 # OR -Value {
@@ -154,15 +182,3 @@ function Get-Change {
 #       default { $this.State + " " + $this.FilePath} 
 #   }
 # } -Force
-
-
-function Get-Info {
-    [CmdletBinding()]
-    param(
-        [Parameter()]
-        [String]$Path
-    )
-    process {
-        Write-Warning "The path is not in a git repository!"
-    }
-}
