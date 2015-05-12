@@ -90,6 +90,7 @@ function Get-Change {
                 Staged = $true; 
                 Change = "Renamed"; 
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                OldPath = $File.HeadToIndexRenameDetails.OldFilePath + $(if(Test-Path (Join-Path $Path $File.HeadToIndexRenameDetails.OldFilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Removed) {
@@ -112,9 +113,10 @@ function Get-Change {
         # Output unstaged changes, if any
         foreach($file in $status.RenamedInWorkDir) {
             New-Object PSCustomObject -Property @{ 
-                Staged = $false; 
-                Change = "Renamed"; 
+                Staged = $false
+                Change = "Renamed"
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                OldPath = $File.IndexToWorkDirRenameDetails.OldFilePath + $(if(Test-Path (Join-Path $Path $File.IndexToWorkDirRenameDetails.OldFilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Modified) {
@@ -172,6 +174,15 @@ function Get-Info {
     }
 }
 
+# function Show-Status {
+#     [CmdletBinding()]
+#     param()
+#     Get-Info | Out-Default
+#     Get-Change | Out-Default
+# }
+# Set-Alias Status "Show-Status"
+
+# Export-ModuleMember -Function *-* -Alias *
 
 # For PSTypes??
 # Update-TypeData -TypeName LibGit2Sharp.StatusEntry -MemberType ScriptMethod -MemberName ToString -Value { $this.FilePath }

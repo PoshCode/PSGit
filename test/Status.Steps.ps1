@@ -167,7 +167,7 @@ Then "the status of git should be" {
     # TODO: add "AFTER" support for Gherkin so we can do this:
     trap {
         Write-Warning $($Result | ft -auto | Out-String)
-        Write-Warning $(git status)
+        Write-Warning $($(git status) -Join "`n")
         throw $_
     }
 
@@ -175,8 +175,12 @@ Then "the status of git should be" {
         # Staged | Change  | Path
         $R = $Result[$f] 
         $T = $Table[$f]
-        $R | Must Path   -eq $T.Path
-        $R | Must Staged -eq ($T.Staged -eq "True")
-        $R | Must Change -eq $T.Change
+        if($T.OldPath) {
+            $R | Must OldPath -eq $T.OldPath
+        }
+        $R | Must Path    -eq $T.Path
+        $R | Must Staged  -eq ($T.Staged -eq "True")
+        $R | Must Change  -eq $T.Change
+
     }
 }
