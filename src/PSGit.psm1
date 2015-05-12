@@ -5,6 +5,7 @@ function Get-RootFolder {
     param(
         # Where to start searching
         [Parameter()]
+        [ValidateNotNullOrEmpty()]        
         [String]$Root = $Pwd
     )
     end {        
@@ -22,6 +23,7 @@ function Get-Change {
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
     param(
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd,
 
         [Parameter(Position = 0)]
@@ -158,7 +160,8 @@ function Get-Info {
     [CmdletBinding()]
     param(
         [Parameter()]
-        [String]$Path
+        [ValidateNotNullOrEmpty()]        
+        [String]$Root = $Pwd
     )
     end {
         $Path = Get-RootFolder $Root

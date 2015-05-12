@@ -5,6 +5,7 @@ Feature: Get repository status
 
 
     Scenario: There's no Repository
+        Given we are NOT in a repository
         When Get-GitInfo is called
         Then the output should be a warning: "The path is not in a git repository!"
 

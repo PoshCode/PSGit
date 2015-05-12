@@ -32,7 +32,7 @@ $Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
 
 
 Write-Verbose "Import-Module $Release\PSGit.psd1" -Verbose:(!$Quiet)
-Import-Module $Release\PSGit.psd1
+Import-Module $Release\PSGit.psd1 -Force
 
 $Options = @{
     OutputFormat = "NUnitXml"

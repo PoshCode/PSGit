@@ -91,7 +91,11 @@ When "Get-GitChange (.*)? ?is called" {
 }
 When "Get-GitInfo (.*)? ?is called" {
     param($pathspec)
-    $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+    if($pathspec) {
+        $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+    } else {
+        $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings
+    }
 }
 
 When "Add-GitItem (.*)? is called" {
