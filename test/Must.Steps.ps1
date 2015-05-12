@@ -256,7 +256,19 @@ begin
                 $message += if($Any) { "any" }
                 $message += $PSCmdlet.ParameterSetName
                 $message += "'$($Value -join "','")'"
-                $message += if($NoProperty) { "-- Actual: '" + $InputObject + "'" } else { "-- Actual: '" + $InputObject.$Property + "'" }
+                $message += if($NoProperty) { 
+                        if($InputObject -eq $null) {
+                            '-- Actual: $null'
+                        } else {
+                            "-- Actual: '" + $InputObject + "'" 
+                        }
+                    } else {
+                        if($InputObject.$Property -eq $null) {
+                            '-- Actual: $null'
+                        } else {
+                            "-- Actual: '" + $InputObject.$Property + "'"
+                        }
+                    }
 
                 $exception = New-Object AggregateException ($message -join " ")
                 $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, "FailedMust", "LimitsExceeded", $message
@@ -312,6 +324,7 @@ begin
             }
         }
 
+        $NeedPipelineInput = $PSCmdlet.MyInvocation.ExpectingInput
         $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
         $steppablePipeline.Begin($PSCmdlet)
     } catch {
@@ -322,6 +335,7 @@ begin
 process
 {
     try {
+        $NeedPipelineInput = $False
         if($NoProperty) {
             $_ = @{ "Value" = $_ }
         }
@@ -335,6 +349,9 @@ process
 end
 {
     try {
+        if($NeedPipelineInput -and !${BeNullOrEmpty} -and !$Not) {
+            ForEach-Object $ThrowMessage -Input $Null
+        }
         $steppablePipeline.End()
     } catch {
         throw

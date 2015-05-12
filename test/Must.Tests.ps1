@@ -1,5 +1,7 @@
 Set-StrictMode -Version Latest
 
+. $PSScriptRoot\Must.Steps.ps1
+
 Describe "Simple booleans" {
     Context "for positive assertions" {
         It "returns true if the test is true" {
@@ -14,7 +16,7 @@ Describe "Simple booleans" {
     }
 }
 
-Describe -Tag "Acceptance" "Should" {
+Describe -Tag "Acceptance" "Must" {
     It "can use the Be assertion" {
         1 | Must -Equal 1
     }
@@ -27,6 +29,12 @@ Describe -Tag "Acceptance" "Should" {
         $null | Must -Equal $Null
         @()   | Must -BeNullOrEmpty
         ""    | Must -BeNullOrEmpty
+    }
+
+    It "Fails on Null values" {
+        { $null | Must -Eq 4 } | Should Throw
+        { @()   | Must -Eq "Something" } | Should Throw
+        { ""    | Must -Not -BeNullOrEmpty } | Should Throw
     }
 
     It "can use the Not BeNullOrEmpty assertion" {
