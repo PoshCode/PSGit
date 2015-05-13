@@ -1,6 +1,6 @@
 ## Contributing
 
-Thanks for taking an insterest in contributing to the PowerShell-enabled Git 
+Thanks for taking an insterest in contributing to the PowerShell-enabled Git module.
 
 First things first: we assume you have Microsoft's [OneGet "PackageManagement" module](http://OneGet.org) already installed. It is a part of PowerShell 5, but is available downlevel, so what are you waiting for? (**install [this](http://oneget.org/install-oneget.exe)**)?
 
@@ -8,16 +8,21 @@ First things first: we assume you have Microsoft's [OneGet "PackageManagement" m
 
 Development happens on the **dev** branch. Please send pull requests against that branch only.
 
-The **master** branch should contain only features which are already releaseable (which may, or may not have features that have not already been released).
+The **master** branch contains only features which are _already_ released, and documentation.
+
+We are following the [git flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) process, but you should not concern yourself with the details too much, just create a feature branch from the **dev** branch, and send your pull request back to dev. _You can refer to [this document](https://guides.github.com/introduction/flow/), except use **dev** instead of master._
 
 This project is organized such that:
 
 * `/src` is the source code of the module itself
 * `/test` contains the test code and .feature specifications
+* `/lib` contains submodules which point to projects that are required for development.
 * `/packages` is not in the repository, but contains (nuget) packages
-* `/lib` contains git submodules which point to projects that we depend on (or that are required for development).
+* `/output` is not in the repository, but is created by the `Build.ps1` scripts for logs and output
+* `/1.0` is not in the repository, but is created by the `Build.ps1` script as a _release_ of the module
 
-Thus, all edits to the module code should be in the `/src` folder, and must be tested by tests in the `/test` folder.  
+
+Thus, all edits to the module code should be in the `/src` folder, and must be tested by tests in the `/test` folder.
 
 ### Building Development Versions
 

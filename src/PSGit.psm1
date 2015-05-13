@@ -5,20 +5,20 @@ function Get-RootFolder {
     param(
         # Where to start searching
         [Parameter()]
-        [ValidateNotNullOrEmpty()]        
+        [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd
     )
-    end {        
+    end {
         # Git Repositories are File System Based, and don't care aabout PSDrives
         $Path = Convert-Path $Root
         while($Path -and !(Test-Path $Path\.git -Type Container)) {
-            $Path = Split-Path $Path 
+            $Path = Split-Path $Path
         }
         return $Path
     }
 }
 
-# TODO: DOCUMENT ME 
+# TODO: DOCUMENT ME
 function Get-Change {
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
     param(
@@ -38,14 +38,14 @@ function Get-Change {
         [Parameter()]
         [switch]
         $HideUntracked,
-        
+
         [Parameter()]
         [switch]
         $HideSubmodules,
 
         [Parameter()]
         [switch]
-        $ShowIgnored        
+        $ShowIgnored
     )
     end {
         $Path = Get-RootFolder $Root
@@ -79,40 +79,40 @@ function Get-Change {
 
         # Output staged changes, if any
         foreach($file in $status.Added) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Added"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Added";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.RenamedInIndex) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Renamed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Renamed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 OldPath = $File.HeadToIndexRenameDetails.OldFilePath + $(if(Test-Path (Join-Path $Path $File.HeadToIndexRenameDetails.OldFilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Removed) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Removed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Removed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Staged) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
             if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInIndex) -eq 0) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $true; 
-                    Change = "Modified"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $true;
+                    Change = "Modified";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
         # Output unstaged changes, if any
         foreach($file in $status.RenamedInWorkDir) {
-            New-Object PSCustomObject -Property @{ 
+            New-Object PSCustomObject -Property @{
                 Staged = $false
                 Change = "Renamed"
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
@@ -122,25 +122,25 @@ function Get-Change {
         foreach($file in $status.Modified) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
             if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInWorkDir) -eq 0) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Modified"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Modified";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
         foreach($file in $status.Missing) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $false; 
-                Change = "Removed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $false;
+                Change = "Removed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
         if(!$HideUntracked) {
             foreach($file in $status.Untracked) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Added"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Added";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
@@ -148,9 +148,9 @@ function Get-Change {
         # Optional output
         if($ShowIgnored) {
             foreach($file in $status.Ignored) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Ignored"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Ignored";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
@@ -162,7 +162,7 @@ function Get-Info {
     [CmdletBinding()]
     param(
         [Parameter()]
-        [ValidateNotNullOrEmpty()]        
+        [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd
     )
     end {
@@ -193,6 +193,6 @@ function Get-Info {
 #       "Added" { "A  " + $this.FilePath }
 #       "Modified" { " M " + $this.FilePath}
 #       "Added, Modified" { "AM " + $this.FilePath}
-#       default { $this.State + " " + $this.FilePath} 
+#       default { $this.State + " " + $this.FilePath}
 #   }
 # } -Force
