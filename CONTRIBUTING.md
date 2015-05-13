@@ -24,6 +24,8 @@ This project is organized such that:
 
 Thus, all edits to the module code should be in the `/src` folder, and must be tested by tests in the `/test` folder.
 
+Please join our development discussion chat on [PowerShell Slack](https://PowerShell.Slack.com) in the #PowerShell channel. If you're not already a member, you can get an invitation by putting an email address into that first text box on http://slack.poshcode.org/ and clicking `Get-Invite` ;)
+
 ### Building Development Versions
 
 To get started, you need to clone the project with the `--recursive` switch in order to update and initialize the submodules, and then checkout the **dev** branch. E.g.:
