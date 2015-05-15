@@ -23,3 +23,5 @@ if(!$global:LibGit2Sharp) {
 }
 
 Get-ChildItem $PSScriptRoot\packages\libgit2sharp\lib\*\*
+
+git submodule update --init --recursive
