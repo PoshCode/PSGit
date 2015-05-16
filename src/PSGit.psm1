@@ -219,3 +219,31 @@ function Get-Info {
 #       default { $this.State + " " + $this.FilePath}
 #   }
 # } -Force
+
+
+function New-Repository
+{
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    End
+    {
+        $Path = Convert-Path $Root
+        # Not sure why this is needed, but if you do a folder on the root it fails
+        $Path = Join-Path $path "." 
+
+        $null = mkdir $Root -Force -ErrorAction SilentlyContinue
+        try
+        {
+            $rtn = [LibGit2Sharp.Repository]::Init($Path)
+        }
+        catch
+        {
+            Write-Error $_
+        }
+    }
+}
