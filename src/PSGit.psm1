@@ -171,6 +171,29 @@ function Get-Info {
             Write-Warning "The path is not in a git repository!"
             return
         }
+
+         try {
+            $repo = New-Object LibGit2Sharp.Repository $Path
+            # the Message/Note seems to be in multiple locations, more testing will need to be done.
+            $message = $repo.Commits[0].message
+            
+            $message = if($message)
+            {
+                $message.trim()
+            }
+            else
+            {
+                "Initial Commit"
+            }
+            
+            [pscustomobject]@{
+                Branch=$repo.Head.Name
+                Note=$message
+            }
+           
+        } finally {
+            $repo.Dispose()
+        }
     }
 }
 
