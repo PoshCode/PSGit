@@ -17,6 +17,16 @@ Given "we are NOT in a repository" {
     Remove-Item TestDrive:\* -Recurse -Force
 }
 
+Given "we are in a git repository" {
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+
+    Remove-Item TestDrive:\* -Recurse -Force
+
+    New-GitRepository
+}
+
 Given "we have initialized a repository(?: with)?" {
     param($table)
 
@@ -70,6 +80,16 @@ Given "we have added a submodule `"(\w+)`"" {
     git submodule add https://github.com/PoshCode/PSGit.git $module 2>&1
 }
 
+
+Given "we are in an empty folder" {
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+
+    Remove-Item TestDrive:\* -Recurse -Force
+}
+
+
 When "Get-GitChange (.*)? ?is called" {
     param($pathspec)
     $newspec = $pathspec -replace "-ShowIgnored"
@@ -96,6 +116,16 @@ When "Get-GitInfo (.*)? ?is called" {
     } else {
         $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings
     }
+}
+
+When "New-GitRepository (.*)? ?is called" {
+    param($pathspec)
+    if($pathspec) {
+        new-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+    } else {
+        new-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings
+    }
+
 }
 
 When "Add-GitItem (.*)? is called" {
@@ -182,5 +212,25 @@ Then "the status of git should be" {
         $R | Must Staged  -eq ($T.Staged -eq "True")
         $R | Must Change  -eq $T.Change
 
+    }
+}
+
+Then 'there should be a ["''](.*)["''] folder' {
+    param($folder)
+    Test-Path $folder -PathType Container
+
+}
+
+Then 'there should NOT be a ["''](.*)["''] file' {
+    param($folder)
+    !(Test-Path $folder -PathType Leaf)
+}
+
+Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
+    param($file,$content)
+
+    if(Test-Path $file -PathType Leaf)
+    {
+        (Get-Content $file) -eq $content
     }
 }
