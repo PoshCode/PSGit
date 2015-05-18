@@ -237,13 +237,8 @@ function New-Repository
         $Path = Join-Path $path "." 
 
         $null = mkdir $Root -Force -ErrorAction SilentlyContinue
-        try
-        {
+        try {
             $rtn = [LibGit2Sharp.Repository]::Init($Path)
-        }
-        catch
-        {
-            Write-Error $_
-        }
+        } finally {} 
     }
 }
