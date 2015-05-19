@@ -121,9 +121,9 @@ When "Get-GitInfo (.*)? ?is called" {
 When "New-GitRepository (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
-        new-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
     } else {
-        new-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings
     }
 
 }
@@ -217,13 +217,22 @@ Then "the status of git should be" {
 
 Then 'there should be a ["''](.*)["''] folder' {
     param($folder)
-    Test-Path $folder -PathType Container
+    if(!(Test-Path $folder -PathType Container))
+    {
+        throw "Folder ($folder) not found!"
+    }
+    return $true
 
 }
 
 Then 'there should NOT be a ["''](.*)["''] file' {
-    param($folder)
-    !(Test-Path $folder -PathType Leaf)
+    param($file)
+    if(Test-Path $file -PathType Leaf)
+    {
+        throw "File ($file) found!, Should not be there!"
+    }
+    return $true
+
 }
 
 Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
@@ -231,6 +240,15 @@ Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
 
     if(Test-Path $file -PathType Leaf)
     {
-        (Get-Content $file) -eq $content
+        if((Get-Content $file) -eq $content)
+        {
+            return $true
+        }
+        else
+        {
+            throw "Content not found in file. $file - $content"
+        }
+
     }
+    throw "File $file not found"
 }
