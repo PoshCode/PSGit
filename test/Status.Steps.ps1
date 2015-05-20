@@ -217,6 +217,11 @@ Then "the status of git should be" {
 
 Then 'there should be a ["''](.*)["''] folder' {
     param($folder)
+    
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+
     if(!(Test-Path $folder -PathType Container))
     {
         throw "Folder ($folder) not found!"
@@ -227,9 +232,14 @@ Then 'there should be a ["''](.*)["''] folder' {
 
 Then 'there should NOT be a ["''](.*)["''] file' {
     param($file)
+    
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+    
     if(Test-Path $file -PathType Leaf)
     {
-        throw "File ($file) found!, Should not be there!"
+        throw "File ($file) found! Should not be there!"
     }
     return $true
 
@@ -238,15 +248,20 @@ Then 'there should NOT be a ["''](.*)["''] file' {
 Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
     param($file,$content)
 
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+
     if(Test-Path $file -PathType Leaf)
     {
-        if((Get-Content $file) -eq $content)
+        $data = Get-Content $file
+        if($data -eq $content)
         {
             return $true
         }
         else
         {
-            throw "Content not found in file. $file - $content"
+            throw "Content not found in file! ($data)"
         }
 
     }
