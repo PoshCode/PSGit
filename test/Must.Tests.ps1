@@ -26,6 +26,12 @@ Describe -Tag "Acceptance" "Must" {
     }
 
     It "can use the BeNullOrEmpty assertion" {
+Describe "Must Match" -Tag Acceptance {
+
+    It "can handle the Match assertion" {
+        "abcd1234" | Must -Match "d1"
+    }
+}
         $null | Must -Equal $Null
         @()   | Must -BeNullOrEmpty
         ""    | Must -BeNullOrEmpty
@@ -60,10 +66,6 @@ Describe -Tag "Acceptance" "Must" {
     # It "can handle Exist assertion" {
     #     $TestDrive | Should Exist
     # }
-
-    It "can handle the Match assertion" {
-        "abcd1234" | Must -Match "d1"
-    }
 
     # It "can test for file contents" {
     #     Setup -File "test.foo" "expected text"
