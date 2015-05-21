@@ -175,7 +175,7 @@ function Get-Info {
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
             # the Message/Note seems to be in multiple locations, more testing will need to be done.
-            $message = $repo.Commits[0].message
+            $message = $repo.Commits | select -first 1 -ExpandProperty Message 
             
             $message = if($message)
             {
