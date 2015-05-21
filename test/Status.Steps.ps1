@@ -254,7 +254,7 @@ Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
 
     if(Test-Path $file -PathType Leaf)
     {
-        $data = Get-Content $file
+        $data = Get-Content $file -Raw
         if($data -eq $content)
         {
             return $true
