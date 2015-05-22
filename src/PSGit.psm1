@@ -1,3 +1,7 @@
+### Imports ###
+$null = Import-Module $PSScriptRoot\internal.psm1
+###############
+
 function Get-RootFolder {
     #.Synopsis
     #   Search up the directory tree recursively for a git root (and corresponding .git folder)
