@@ -22,8 +22,9 @@
         $BackgroundColor = $host.PrivateData.VerboseBackgroundColor
     )
 
-    if($ForegroundColor -is [System.Windows.Media.Color]){ $ForegroundColor = ConvertColor $ForegroundColor }
-    if($BackgroundColor -is [System.Windows.Media.Color])
+
+    if($ForegroundColor -isnot [ConsoleColor]){ $ForegroundColor = ConvertColor $ForegroundColor }
+    if($BackgroundColor -isnot [ConsoleColor])
     {
         # if its a transparent color
         if($BackgroundColor -eq "#00FFFFFF") {$BackgroundColor = $host.PrivateData.ConsolePaneBackgroundColor}
@@ -38,6 +39,7 @@
 
 function ConvertColor($color)
 {
+    if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
     [int]$bright = if($color.R -gt 128 -bor $color.G -gt 128 -bor $color.B -gt 128){8}else{0}
     [int]$r = if($color.R -gt 64){4}else{0}
     [int]$g = if($color.G -gt 64){2}else{0}
