@@ -17,21 +17,13 @@ function WriteMessage
         
         # Color of the message, it will default to the hosts' verbose color.
         [Parameter(Position=2)]
-        
-        $ForegroundColor = $host.PrivateData.VerboseForegroundColor,
+        [ConsoleColor]
+        $ForegroundColor = ($host.PrivateData.VerboseForegroundColor|ConvertColor),
         # Background color of the message, it will default to the hosts' verbose color.
-        [Parameter(Position=3)] 
-        $BackgroundColor = $host.PrivateData.VerboseBackgroundColor
+        [Parameter(Position=3)]
+        [ConsoleColor]
+        $BackgroundColor = ($host.PrivateData.VerboseBackgroundColor|ConvertColor)
     )
-
-
-    if($ForegroundColor -isnot [ConsoleColor]){ $ForegroundColor = ConvertColor $ForegroundColor }
-    if($BackgroundColor -isnot [ConsoleColor])
-    {
-        # if its a transparent color
-        if($BackgroundColor -eq "#00FFFFFF") {$BackgroundColor = $host.PrivateData.ConsolePaneBackgroundColor}
-        $BackgroundColor = ConvertColor $BackgroundColor
-    }
 
     #todo check to see if the preference is on or off
     
@@ -39,14 +31,37 @@ function WriteMessage
 }
 
 
-function ConvertColor($color)
+function ConvertColor
 {
-    if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
-    [int]$bright = if($color.R -gt 128 -bor $color.G -gt 128 -bor $color.B -gt 128){8}else{0}
-    [int]$r = if($color.R -gt 64){4}else{0}
-    [int]$g = if($color.G -gt 64){2}else{0}
-    [int]$b = if($color.B -gt 64){1}else{0}
-    [consolecolor]($bright -bor $r -bor $g -bor $b)
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline=$true)]
+        $color
+    )
+
+    if($color -as [ConsoleColor])
+    {
+        [consolecolor]$color
+    }
+    else
+    {
+        
+        if("system.Windows.Media.Color" -as [type])
+        {
+            #if its a transparent color, just use the background color of the host
+            if($color -eq "#00FFFFFF") {$color = $host.PrivateData.ConsolePaneBackgroundColor}
+            if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
+            [int]$bright = if($color.R -gt 128 -bor $color.G -gt 128 -bor $color.B -gt 128){8}else{0}
+            [int]$r = if($color.R -gt 64){4}else{0}
+            [int]$g = if($color.G -gt 64){2}else{0}
+            [int]$b = if($color.B -gt 64){1}else{0}
+            [consolecolor]($bright -bor $r -bor $g -bor $b)
+        }
+        else
+        {
+            throw "Unable to process hosts default colors"
+        }
+    }
 }
 #endregion
 
