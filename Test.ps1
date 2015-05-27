@@ -1,38 +1,44 @@
 [CmdletBinding()]
 param(
+    [Alias("PSPath")]
+    [string]$Path = $PSScriptRoot,
+    [string]$ModuleName = $(Split-Path $Path -Leaf),
+
+    [Switch]$SkipBuild,
+
     [Switch]$Quiet,
+
     [Switch]$ShowWip,
+
     $FailLimit=0,
     
     [ValidateNotNullOrEmpty()]    
     [String]$JobID = ${Env:APPVEYOR_JOB_ID},
 
-    [ValidateNotNullOrEmpty()]
-    [String]$BuildVersion = ${Env:APPVEYOR_BUILD_VERSION},
+    [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER},
 
     [ValidateNotNullOrEmpty()]
     [String]$CodeCovToken = ${ENV:CODECOV_TOKEN}
 )
-$TestPath = Join-Path $PSScriptRoot Test
-$SourcePath = Join-Path $PSScriptRoot src
-$OutputPath = Join-Path $PSScriptRoot output
+$TestPath = Join-Path $Path Test
+$SourcePath = Join-Path $Path src
+$OutputPath = Join-Path $Path output
 $null = mkdir $OutputPath -Force
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-Write-Verbose "Import-Module $PSScriptRoot\lib\Pester" -Verbose:(!$Quiet)
-Import-Module $PSScriptRoot\lib\Pester -Force
+if(!$SkipBuild) {
+    &"$PSScriptRoot\Build.ps1" -Path:$Path -ModuleName:$ModuleName -RevisionNumber:$RevisionNumber
+}
 
-$PSGit = Import-LocalizedData -BaseDirectory $PSScriptRoot\src -FileName PSGit.psd1
-Write-Verbose "TESTING $($PSGit.ModuleVersion) build $BuildVersion" -Verbose:(!$Quiet)
+Write-Host "TESTING: $ModuleName with $Path\Test"
 
-$Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
+$Version = &"${PSScriptRoot}\Get-Version.ps1" -Module (Join-Path $Path\src "${ModuleName}.psd1") -DevBuild:$RevisionNumber -RevisionNumber:$RevisionNumber
+$ReleasePath = Join-Path $Path $Version
 
-
-
-Write-Verbose "Import-Module $Release\PSGit.psd1" -Verbose:(!$Quiet)
-Import-Module $Release\PSGit.psd1 -Force
+Write-Verbose "TESTING $ModuleName v$Version" -Verbose:(!$Quiet)
+Remove-Module $ModuleName -ErrorAction SilentlyContinue
 
 $Options = @{
     OutputFormat = "NUnitXml"
@@ -41,7 +47,12 @@ $Options = @{
 if($Quiet) { $Options.Quiet = $Quiet }
 if(!$ShowWip){ $Options.ExcludeTag = @("wip") }
 
-$TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$Release\*.ps[m1]*" -PassThru @Options
+Set-Content "$Path\Test\.Do.Not.COMMIT.This.Steps.ps1" "Import-Module $ReleasePath\${ModuleName}.psd1 -Force"
+
+$TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.ps[m1]*" -PassThru @Options
+
+Remove-Module $ModuleName -ErrorAction SilentlyContinue
+Remove-Item "$Path\Test\.Do.Not.COMMIT.This.Steps.ps1"
 
 $script:failedTestsCount = 0
 $script:passedTestsCount = 0
@@ -55,21 +66,21 @@ foreach($result in $TestResults)
 
         # Map file paths, e.g.: \1.0 back to \src
         for($i=0; $i -lt $TestResults.CodeCoverage.HitCommands.Count; $i++) {
-            $TestResults.CodeCoverage.HitCommands[$i].File = $TestResults.CodeCoverage.HitCommands[$i].File.Replace($Release, $SourcePath)
+            $TestResults.CodeCoverage.HitCommands[$i].File = $TestResults.CodeCoverage.HitCommands[$i].File.Replace($ReleasePath, $SourcePath)
         }
         for($i=0; $i -lt $TestResults.CodeCoverage.MissedCommands.Count; $i++) {
-            $TestResults.CodeCoverage.MissedCommands[$i].File = $TestResults.CodeCoverage.MissedCommands[$i].File.Replace($Release, $SourcePath)
+            $TestResults.CodeCoverage.MissedCommands[$i].File = $TestResults.CodeCoverage.MissedCommands[$i].File.Replace($ReleasePath, $SourcePath)
         }
 
         if($result.CodeCoverage.MissedCommands.Count -gt 0) {
             $result.CodeCoverage.MissedCommands |
                 ConvertTo-Html -Title $CodeCoverageTitle | 
-                Out-File (Join-Path $OutputPath "CodeCoverage-${BuildVersion}.html")
+                Out-File (Join-Path $OutputPath "CodeCoverage-${Version}.html")
         }
         if(${CodeCovToken})
         {
             Write-Verbose "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
-            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $PSScriptRoot -OutputPath $OutputPath -Token ${CodeCovToken}
+            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $Path -OutputPath $OutputPath -Token ${CodeCovToken}
             Write-Verbose $response.message -Verbose:(!$Quiet)
         }
     }

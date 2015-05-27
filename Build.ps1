@@ -4,7 +4,6 @@ param(
     [string]$Path = $PSScriptRoot,
     [string]$ModuleName = $(Split-Path $Path -Leaf),
     [switch]$Monitor,
-    [ValidateNotNullOrEmpty()]
     [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER}
 )
 
