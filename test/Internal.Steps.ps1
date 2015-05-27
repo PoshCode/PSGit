@@ -8,5 +8,5 @@
 }
 
 When 'ConvertColor is called' {
-        $script:result = &(gmo psgit){ConvertColor -color '#00ff0000' }
+        $script:result = &(gmo psgit){ConvertColor -color red }
 }
