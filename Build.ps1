@@ -1,46 +1,65 @@
 [CmdletBinding()]
-param([switch]$Monitor)
-
-$OutputPath = Join-Path $PSScriptRoot output
-$null = mkdir $OutputPath -Force
+param(
+    [Alias("PSPath")]
+    [string]$Path = $PSScriptRoot,
+    [string]$ModuleName = $(Split-Path $Path -Leaf),
+    [switch]$Monitor,
+    [ValidateNotNullOrEmpty()]
+    [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER}
+)
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+Write-Host "BUILDING: $ModuleName from $Path"
 
-$PSGit = Import-LocalizedData -BaseDirectory $PSScriptRoot\src -FileName PSGit.psd1
+$OutputPath = Join-Path $Path output
+$null = mkdir $OutputPath -Force
 
-$Release = Join-Path $PSScriptRoot $PSGit.ModuleVersion
-if(Test-Path $Release) {
-    Write-Verbose "DELETE $Release\"
-    rm $Release -Recurse -Force -ErrorAction SilentlyContinue
+# If the RevisionNumber is specified as ZERO, this is a release build
+Write-Verbose "       Clean up old build"
+$Version = &"${PSScriptRoot}\Get-Version.ps1" -Module (Join-Path $Path\src "${ModuleName}.psd1") -DevBuild:$RevisionNumber -RevisionNumber:$RevisionNumber
+
+$ReleasePath = Join-Path $Path $Version
+if(Test-Path $ReleasePath) {
+    Write-Verbose "DELETE $ReleasePath\"
+    Remove-Item $ReleasePath -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-## Find Library Files
-if(!(Test-Path Variable:global:LibGit2Sharp) -or !(Test-Path $global:LibGit2Sharp)) {
-    $global:LibGit2Sharp = Resolve-Path $PSScriptRoot\packages\libgit2sharp\lib\*\LibGit2Sharp.dll -ErrorAction SilentlyContinue
+## Find dependency Package Files
+Write-Verbose "       Copying Packages"
+foreach($Package in ([xml](gc .\packages.config)).packages.package) {
+    $PackageSource = Resolve-Path "$Path\packages\$($Package.id)*\lib\*"  | sort Name | select -first 1 -expand Path
+
+    Write-Verbose "COPY   $PackageSource\"
+    $null = robocopy $PackageSource $ReleasePath\lib /MIR /NP /LOG:"$OutputPath\build.log" /R:2 /W:15
+    if($LASTEXITCODE -gt 1) {
+        throw "Failed to copy Package $($Package.id) (${LASTEXITCODE}), see build.log for details"
+    }
 }
 
-## Copy Library Files
-$LibSource = $(Split-Path $global:LibGit2Sharp)
-Write-Verbose "COPY   $LibSource\"
-$null = robocopy $LibSource $Release\lib /MIR /NP /LOG:"$OutputPath\build.log"
-if($LASTEXITCODE -gt 1) {
-    throw "Failed to copy Libraries (${LASTEXITCODE}), see build.log for details"
-}
-## Copy Source Files
-Write-Verbose "COPY   $PSScriptRoot\src\"
-$null = robocopy $PSScriptRoot\src\  $Release /E /NP /LOG+:"$OutputPath\build.log"
+## Copy PowerShell source Files
+Write-Verbose "       Copying Module Source"
+Write-Verbose "COPY   $Path\src\"
+$null = robocopy $Path\src\  $ReleasePath /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
 if($LASTEXITCODE -ne 3) {
     throw "Failed to copy Module (${LASTEXITCODE}), see build.log for details"
 }
+## Touch the PSD1 Version:
+Write-Verbose "       Update Module Version"
+$ReleaseManifest = Join-Path $ReleasePath "${ModuleName}.psd1"
+Set-Content $ReleaseManifest ((Get-Content $ReleaseManifest) -Replace "^(\s*)ModuleVersion\s*=\s*'?[\d\.]+'?\s*`$", "`$1ModuleVersion = '$Version'")
+
 
 ## TODO: Use Grunt or write something native to handle this
 #        The robocopy solution has a resolution of 1 minute...
 if($Monitor) {
-    Start-Job -Name PSGitBuild {
+    Start-Job -Name "${ModuleName}Build" {
         param($ReleasePath, $SourcePath=$(Split-Path $ReleasePath))
         Set-Location $SourcePath
         [Environment]::CurrentDirectory = $SourcePath
-        robocopy $SourcePath\src\ $ReleasePath /E /NP /MON:1
-    } -ArgumentList $Release
+        robocopy $SourcePath\src\ $ReleasePath /E /NP /MON:1 /R:5 /W:15
+        if($LASTEXITCODE -gt 1) {
+            Write-Error "Failed to copy Module (${LASTEXITCODE}), see build.log for details"
+        }
+    } -ArgumentList $ReleasePath
 }
