@@ -11,9 +11,10 @@ When "WriteMessage ((?<type>\S+)\s+(?<message>\S+))? ?is called" {
 }
 #>
 
-When "WriteMessage is called" {
-    Mock Write-Host {return "TIP: test"} -ParameterFilter {$object -eq "TIP: test"} -Verifiable -ModuleName psgit
-    $script:result = &(gmo psgit){WriteMessage -type Tip -message test  }
+When "WriteMessage ((?<type>\S+)\s+(?<message>\S+))? ?is called" {
+param($type,$message)
+    Mock Write-Host {return "$($type.ToUpper()): test"} -ParameterFilter {$object -eq "$($type.ToUpper()): $message"} -Verifiable -ModuleName psgit
+    $script:result = &(gmo psgit){WriteMessage -type $args[0] -message $args[1]} $type $message
 }
 
 When 'ConvertColor is called' {
