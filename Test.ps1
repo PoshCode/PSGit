@@ -28,6 +28,8 @@ $null = mkdir $OutputPath -Force
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+Write-Verbose "Import-Module $PSScriptRoot\lib\Pester" -Verbose:(!$Quiet)
+Import-Module $PSScriptRoot\lib\Pester -Force
 if(!$SkipBuild) {
     &"$PSScriptRoot\Build.ps1" -Path:$Path -ModuleName:$ModuleName -RevisionNumber:$RevisionNumber
 }
