@@ -10,14 +10,18 @@ When "WriteMessage ((?<type>\S+)\s+(?<message>\S+))? ?is called" {
     }
 }
 #>
-
-When "WriteMessage ((?<type>\S+)\s+(?<message>\S+))? ?is called" {
+Given "we have WPF loaded" {
+    Add-Type -AssemblyName presentationCore
+}
+When "WriteMessage ((?<type>\S+)\s+(?<message>\S+)) is called" {
 param($type,$message)
-    Mock Write-Host {return "$($type.ToUpper()): test"} -ParameterFilter {$object -eq "$($type.ToUpper()): $message"} -Verifiable -ModuleName psgit
+
+    Mock Write-Host {"$($type.toupper()): $message"}  -Verifiable -ModuleName psgit
     $script:result = &(gmo psgit){WriteMessage -type $args[0] -message $args[1]} $type $message
 }
 
-When 'ConvertColor is called' {
-        $script:result = &(gmo psgit){ConvertColor -color red }
+When 'ConvertColor (?<color>\S+) is called' {
+param($color)
+    $script:result = &(gmo psgit){ConvertColor -color "$args" } "$color"
 }
 
