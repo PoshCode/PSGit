@@ -30,7 +30,6 @@ function WriteMessage
     Write-Host "$($Type.ToUpper()): $Message" -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor 
 }
 
-
 function ConvertColor
 {
     [CmdletBinding()]
@@ -39,7 +38,7 @@ function ConvertColor
         $color
     )
 
-    if($color -as [ConsoleColor])
+    if(($color -as [ConsoleColor]) -ne $null)
     {
         [consolecolor]$color
     }
@@ -59,10 +58,11 @@ function ConvertColor
         }
         else
         {
-            throw "Unable to process hosts default colors"
+            throw "Unable to process hosts default colors $color"
         }
     }
 }
+    
 #endregion
 
 
