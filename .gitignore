@@ -4,3 +4,7 @@
 /output/*
 # Ignore version number folders (these are our intermediate "output" directories for testing)
 /[0-9]*/
+# ignore PSTools for VisualStudio files and folders
+/bin/*
+/obj/*
+*.suo
