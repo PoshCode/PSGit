@@ -22,7 +22,7 @@ function WriteMessage
         # Background color of the message, it will default to the hosts' verbose color.
         [Parameter(Position=3)]
         [ConsoleColor]
-        $BackgroundColor = ($host.PrivateData.VerboseBackgroundColor|ConvertColor)
+        $BackgroundColor = ($host.PrivateData.VerboseBackgroundColor|ConvertColor -default "black")
     )
 
     #todo check to see if the preference is on or off
@@ -35,12 +35,17 @@ function ConvertColor
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipeline=$true)]
-        $color
+        $color,
+        $default="yellow"
     )
 
     if(($color -as [ConsoleColor]) -ne $null)
     {
         [consolecolor]$color
+    }
+    elseif($color -eq $null)
+    {
+        [consolecolor]$default
     }
     else
     {
