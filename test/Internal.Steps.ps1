@@ -22,6 +22,21 @@ param($type,$message)
 
 When 'ConvertColor (?<color>\S+) is called' {
 param($color)
-    $script:result = &(gmo psgit){ConvertColor -color "$args" } "$color"
+    #$script:errors = $null
+    try {
+        $script:result = &(gmo psgit){ConvertColor -color "$args" } "$color"
+    }
+    catch {
+        $script:errors = $_
+    }
+    
 }
 
+
+Then "it will Throw a Terminating Error" {
+
+    if(! $script:errors)
+    {
+        return "No error found"
+    }
+}

@@ -11,6 +11,10 @@
         When ConvertColor blue is called
         Then the output should be: "Blue"
 
+    Scenario: no WPF support
+    	When ConvertColor #00aaaaaa is called
+    	Then it will Throw a Terminating Error
+
     Scenario: Color convert in ISE
     	Given we have WPF loaded
     	When ConvertColor #00aaaaaa is called
