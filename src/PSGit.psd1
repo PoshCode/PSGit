@@ -46,7 +46,7 @@ Description = 'A PowerShell implementation of Git, providing a new command-line 
 RequiredAssemblies = 'lib\LibGit2Sharp.dll'
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+# ScriptsToProcess = @('GetChildItemProxy.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
