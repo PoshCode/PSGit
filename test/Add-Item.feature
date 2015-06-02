@@ -8,6 +8,7 @@ Scenario: There's no repository
 	When Add-Item is called
 	Then the output should be a warning: "The path is not in a git repository!"
 
+@wip
 Scenario: Add-Item should have similar parameters to git add
 	Given we have a command Add-Item
 	Then it should have parameters:
@@ -23,6 +24,7 @@ Scenario: Add-Item should have similar parameters to git add
 
 
 #This is the same as Added Files to Stage from Changes.feature, but using Add-Item to add the files to the index
+@wip
 Scenario: add an untracked file
 	Given we have initialized a repository
 	And there is an untracked file called NewFile.txt
@@ -32,6 +34,7 @@ Scenario: add an untracked file
 	And the added file is called NewFile.txt
 
 # This is somewhat similar to Ignored Files from Changes.feature
+@wip
 Scenario: add an ignored file to the index
 	Given we have initialized  a repository
 	And the .gitignore file lists the glob *.ignored
@@ -44,6 +47,7 @@ Scenario: add an ignored file to the index
 
 
 # This is the same as Added and Modified files from Changes.feature, but using Add-Item to add files tot he index
+@wip
 Scenario: update a tracked file
 	Given we have initialized a repository
 	And there is a file called TrackedFile.txt already added to the index
