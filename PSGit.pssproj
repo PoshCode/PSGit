@@ -55,6 +55,9 @@
     <Compile Include="test\Send-CodeCov.ps1" />
     <Compile Include="test\Status.Steps.ps1" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="test\Add-Item.feature" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />
 </Project>
