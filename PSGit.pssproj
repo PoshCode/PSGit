@@ -56,7 +56,7 @@
     <Compile Include="test\Status.Steps.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="test\Add-Item.feature" />
+    <Content Include="test\Add-Change.feature" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" />

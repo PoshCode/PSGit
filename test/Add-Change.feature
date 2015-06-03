@@ -1,17 +1,17 @@
-Feature: Add items to a repo
+Feature: Add changes to a repo
 	In order to track changes with Git, 
-	items need to be added to the repository
-	That's what Add-Item does.
+	changes need to be added to the repository
+	That's what Add-Change does.
 
 @wip
 Scenario: There's no repository
 	Given we are NOT in a repository
-	When Add-Item is called
+	When Add-Change is called
 	Then the output should be a warning: "The path is not in a git repository!"
 
 @wip
-Scenario: Add-Item should have similar parameters to git add
-	Given we have a command Add-Item
+Scenario: Add-Change should have similar parameters to git add
+	Given we have a command Add-Change
 	Then it should have parameters:
 		| Name      | Type     |
 		| PathSpec  | String[] |
@@ -19,17 +19,15 @@ Scenario: Add-Item should have similar parameters to git add
 		| Update    | Switch   |
 		| UpdateAll | Switch   |
 # -Force could also be called -IncludeIgnored since that is it's only purpose
-# Should Add-Item -Update rather be Update-Item? -Update only updates items already present in the index. It does NOT add items.
-# -UpdateAll could also be added to Update-Item as an -All switch. It updates, removes and adds items to the index.
 # Do you normally also list the common parameters here? (e.g. WhatIf, Verbose,...)
 
 
-#This is the same as Added Files to Stage from Changes.feature, but using Add-Item to add the files to the index
+#This is the same as Added Files to Stage from Changes.feature, but using Add-Change to add the files to the index
 @wip
 Scenario: add an untracked file
 	Given we have initialized a repository
 	And there is an untracked file called NewFile.txt
-	When Add-Item NewFile.txt is called
+	When Add-Change NewFile.txt is called
 	Then the status info should show that there are changes on the current branch
 	And the changes are in a new file added to the index
 	And the added file is called NewFile.txt
@@ -39,15 +37,15 @@ Scenario: add an untracked file
 Scenario: add an ignored file to the index
 	Given we have initialized  a repository
 	And the .gitignore file lists the glob *.ignored
-	When Add-Item ToBe.ignored is called
+	When Add-Change ToBe.ignored is called
 	Then nothing changes
-	When Add-Item ToBe.ignored -Force is called
+	When Add-Change ToBe.ignored -Force is called
 	Then the status info should show that there are changes on the current branch
 	And the changes are in a new file added to the index
 	And the added file is called ToBe.ignored
 
 
-# This is the same as Added and Modified files from Changes.feature, but using Add-Item to add files tot he index
+# This is the same as Added and Modified files from Changes.feature, but using Add-Change to add files tot he index
 @wip
 Scenario: update a tracked file
 	Given we have initialized a repository
@@ -55,7 +53,7 @@ Scenario: update a tracked file
 	And there is an untracked file called NewFile.txt
 	But TrackedFile.txt is not yet committed
 	When I change the content of TrackedFile.txt
-	And Add-Item -Update TrackedFile.txt is called
+	And Add-Change -Update TrackedFile.txt is called
 	Then the status info should show that there are changes on the current branch
 	And the changes are in a new file added to the index
 	And the added file is called TrackedFile.txt
