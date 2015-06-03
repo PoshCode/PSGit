@@ -44,7 +44,11 @@
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Get-ChildItem', [System.Management.Automation.CommandTypes]::Cmdlet)
             
-            if($path -and (Get-GitRootFolder "$Path"))
+            Write-Verbose "path: $path" -Verbose
+            Write-Verbose "path type: $($path.gettype())" -Verbose
+            Write-Verbose "path count: $($path.Count)" -Verbose
+            
+            if(![string]::IsNullOrEmpty($path) -and (Get-GitRootFolder $Path))
             {
                 $scriptCmd = {
                     & $wrappedCmd @PSBoundParameters | % -Begin {
