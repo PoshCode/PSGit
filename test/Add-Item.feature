@@ -3,6 +3,7 @@ Feature: Add items to a repo
 	items need to be added to the repository
 	That's what Add-Item does.
 
+@wip
 Scenario: There's no repository
 	Given we are NOT in a repository
 	When Add-Item is called
