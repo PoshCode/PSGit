@@ -1,8 +1,29 @@
-# TODO: DOCUMENT ME 
+function Get-RootFolder {
+    #.Synopsis
+    #   Search up the directory tree recursively for a git root (and corresponding .git folder)
+    [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
+    param(
+        # Where to start searching
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    end {
+        # Git Repositories are File System Based, and don't care aabout PSDrives
+        $Path = Convert-Path $Root
+        while($Path -and !(Test-Path $Path\.git -Type Container)) {
+            $Path = Split-Path $Path
+        }
+        return $Path
+    }
+}
+
+# TODO: DOCUMENT ME
 function Get-Change {
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
     param(
         [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd,
 
         [Parameter(Position = 0)]
@@ -17,21 +38,17 @@ function Get-Change {
         [Parameter()]
         [switch]
         $HideUntracked,
-        
+
         [Parameter()]
         [switch]
         $HideSubmodules,
 
         [Parameter()]
         [switch]
-        $ShowIgnored        
+        $ShowIgnored
     )
     end {
-        # Git Repositories are File System Based, and don't care aabout PSDrives
-        $Path = Convert-Path $Root
-        while($Path -and !(Test-Path $Path\.git -Type Container)) {
-            $Path = Split-Path $Path 
-        }
+        $Path = Get-RootFolder $Root
         if(!$Path) {
             Write-Warning "The path is not in a git repository!"
             return
@@ -62,85 +79,133 @@ function Get-Change {
 
         # Output staged changes, if any
         foreach($file in $status.Added) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Added"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Added";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.RenamedInIndex) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Renamed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Renamed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                OldPath = $File.HeadToIndexRenameDetails.OldFilePath + $(if(Test-Path (Join-Path $Path $File.HeadToIndexRenameDetails.OldFilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Removed) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $true; 
-                Change = "Removed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $true;
+                Change = "Removed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Staged) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
             if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInIndex) -eq 0) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $true; 
-                    Change = "Modified"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $true;
+                    Change = "Modified";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
-
         # Output unstaged changes, if any
         foreach($file in $status.RenamedInWorkDir) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $false; 
-                Change = "Renamed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $false
+                Change = "Renamed"
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
+                OldPath = $File.IndexToWorkDirRenameDetails.OldFilePath + $(if(Test-Path (Join-Path $Path $File.IndexToWorkDirRenameDetails.OldFilePath) -Type Container){ "\" })
             }
         }
         foreach($file in $status.Modified) {
             #BUGBUG: hides rename + edit, but avoids double-outputs (and behaves like git)
             if(($file.State -band [LibGit2Sharp.FileStatus]::RenamedInWorkDir) -eq 0) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Modified"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Modified";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
         foreach($file in $status.Missing) {
-            New-Object PSCustomObject -Property @{ 
-                Staged = $false; 
-                Change = "Removed"; 
+            New-Object PSCustomObject -Property @{
+                Staged = $false;
+                Change = "Removed";
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
-
         if(!$HideUntracked) {
             foreach($file in $status.Untracked) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Added"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Added";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
-
         # Optional output
         if($ShowIgnored) {
             foreach($file in $status.Ignored) {
-                New-Object PSCustomObject -Property @{ 
-                    Staged = $false; 
-                    Change = "Ignored"; 
+                New-Object PSCustomObject -Property @{
+                    Staged = $false;
+                    Change = "Ignored";
                     Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
                 }
             }
         }
     }
 }
+
+function Get-Info {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    end {
+        $Path = Get-RootFolder $Root
+        if(!$Path) {
+            Write-Warning "The path is not in a git repository!"
+            return
+        }
+
+         try {
+            $repo = New-Object LibGit2Sharp.Repository $Path
+            # the Message/Note seems to be in multiple locations, more testing will need to be done.
+            $message = $repo.Commits | select -first 1 -ExpandProperty Message 
+            
+            $message = if($message)
+            {
+                $message.trim()
+            }
+            else
+            {
+                "Initial Commit"
+            }
+            
+            [pscustomobject]@{
+                Branch=$repo.Head.Name
+                Note=$message
+            }
+           
+        } finally {
+            $repo.Dispose()
+        }
+    }
+}
+
+# function Show-Status {
+#     [CmdletBinding()]
+#     param()
+#     Get-Info | Out-Default
+#     Get-Change | Out-Default
+# }
+# Set-Alias Status "Show-Status"
+
+# Export-ModuleMember -Function *-* -Alias *
 
 # For PSTypes??
 # Update-TypeData -TypeName LibGit2Sharp.StatusEntry -MemberType ScriptMethod -MemberName ToString -Value { $this.FilePath }
@@ -151,18 +216,29 @@ function Get-Change {
 #       "Added" { "A  " + $this.FilePath }
 #       "Modified" { " M " + $this.FilePath}
 #       "Added, Modified" { "AM " + $this.FilePath}
-#       default { $this.State + " " + $this.FilePath} 
+#       default { $this.State + " " + $this.FilePath}
 #   }
 # } -Force
 
 
-function Get-Info {
+function New-Repository
+{
     [CmdletBinding()]
-    param(
+    Param
+    (
         [Parameter()]
-        [String]$Path
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
     )
-    process {
-        Write-Warning "The path is not in a git repository!"
+    End
+    {
+        $Path = Convert-Path $Root
+        # Not sure why this is needed, but if you do a folder on the root it fails
+        $Path = Join-Path $path "." 
+
+        $null = mkdir $Root -Force -ErrorAction SilentlyContinue
+        try {
+            $rtn = [LibGit2Sharp.Repository]::Init($Path)
+        } finally {} 
     }
 }

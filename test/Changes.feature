@@ -137,11 +137,11 @@ Feature: Get a list of file changes
             | Renamed    | FileTwo.ps1    | File2.ps1 |
         When Get-GitChange is called
         Then the status of git should be
-            | Staged | Change   | Path      |
-            | True   | Renamed  | File1.ps1 |
-            | True   | Renamed  | File3.ps1 |
-            | False  | Renamed  | File2.ps1 |
-            | False  | Modified | File3.ps1 |
+            | Staged | Change   | Path      | OldPath       |
+            | True   | Renamed  | File1.ps1 | FileOne.ps1   |
+            | True   | Renamed  | File3.ps1 | FileThree.ps1 |
+            | False  | Renamed  | File2.ps1 | FileTwo.ps1   |
+            | False  | Modified | File3.ps1 |               |
  
     Scenario: Ignored Files
         Given we have initialized a repository with

@@ -5,10 +5,10 @@ Feature: Get repository status
 
 
     Scenario: There's no Repository
+        Given we are NOT in a repository
         When Get-GitInfo is called
         Then the output should be a warning: "The path is not in a git repository!"
 
-    @wip
     Scenario: Empty Repository
         Given we have initialized a repository
         When Get-GitInfo is called
@@ -17,7 +17,7 @@ Feature: Get repository status
             | Branch   | master         |
             | Note     | Initial Commit |
 
-    @wip
+ 
     Scenario: New Files in Repository
         Given we have initialized a repository with
             | FileAction | Name          |
@@ -30,7 +30,7 @@ Feature: Get repository status
             | Branch   | master         |
             | Note     | Initial Commit |
 
-    @wip
+ 
     Scenario: Added Files to Stage
         Given we have initialized a repository with
             | FileAction | Name          |
@@ -44,7 +44,7 @@ Feature: Get repository status
             | Branch   | master         |
             | Note     | Initial Commit |
 
-    @wip
+
     Scenario: Added and Modified Files
         Given we have initialized a repository with
             | FileAction | Name          |
@@ -60,19 +60,19 @@ Feature: Get repository status
             | Branch   | master         |
             | Note     | Initial Commit |
 
-    @wip
-    Scenario: Added, Commited and Modified Files
+
+    Scenario: Added, Commited with note and Modified Files
         Given we have initialized a repository with
             | FileAction | Name           |
             | Created    | FileOne.ps1    |
             | Created    | FileTwo.ps1    |
             | Added      | *              |
-            | Commited   | Initial Commit |
+            | Commited   | Simple Edit    |
             | Modified   | FileOne.ps1    |
             | Created    | FileThree.ps1  |
             | Modified   | FileThree.ps1  |
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value  |
-            | Branch   | master |
-
+            | Property | Value       |
+            | Branch   | master      |
+            | Note     | Simple Edit |

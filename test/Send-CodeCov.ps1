@@ -18,13 +18,16 @@ param(
     $Encoding = 'ascii',
 
     [ValidateNotNullOrEmpty()]
-    [String]$Token,
+    [String]$Token = ${Env:CODECOV_TOKEN},
 
     [ValidateNotNullOrEmpty()]
-    [String]$Branch = ${env:APPVEYOR_REPO_BRANCH},
+    [String]$Branch = ${Env:APPVEYOR_REPO_BRANCH},
 
     [ValidateNotNullOrEmpty()]
-    [String]$JobId = ${ENV:APPVEYOR_BUILD_NUMBER}
+    [String]$JobId = ${Env:APPVEYOR_BUILD_NUMBER}, 
+
+    [ValidateNotNullOrEmpty()]
+    [String]$CommitId = ${Env:APPVEYOR_REPO_COMMIT}
 )
 process {
     Write-Verbose -Verbose "RepositoryRoot: $RepositoryRoot"
@@ -177,18 +180,25 @@ process {
         $resultMessages.add($file,$messages)
     }
 
-    $commitOutput = @(&git.exe log -1 --pretty=format:%H)
-    $commit = $commitOutput[0] 
-
     Write-Verbose "Branch: $branch"
-    Write-Verbose "JobId: $JobId"
+    Write-Verbose "Job: $JobId"
+    Write-Verbose "Commit: $CommitId"
     
     $json =$result | ConvertTo-Json
     Write-Verbose "Encoding output using: $Encoding" -Verbose
     $json = $json.Replace('"!null!"','null') 
-    $json | out-file $OutputPath\CodeCov.json
-    if($token) {
-        $jsonPostUri = "https://codecov.io/upload/v1?token=$token&commit=$commit&branch=$branch&travis_job_id=$jobId"
+    if(Test-Path $OutputPath -Type Container) {
+        $OutputPath = "$OutputPath\CodeCov.json"
+        Set-Content $OutputPath $json
+    }
+    if(Test-Path (Split-Path $OutputPath) -Type Container) {
+        Set-Content $OutputPath $json
+    }
+    if($token -and $JobId -and $CommitId -and $Branch) {
+        $jsonPostUri = "https://codecov.io/upload/v1?token=$token&commit=$CommitId&branch=$branch&travis_job_id=$jobId"
         Invoke-RestMethod -Method Post -Uri $jsonPostUri -Body $json -ContentType 'application/json'
+    } else {
+        Write-Warning "Missing data for CodeCov upload.`n`tYou need the CodeCov token, as well as the JobId, CommitId, and Branch name.`n`tIf you just want the json file, be sure to pass -OutputPath"
+        Get-Item $OutputPath -ErrorAction SilentlyContinue
     }
 }
