@@ -29,3 +29,7 @@
 		Given we have WPF loaded
     	When ConvertColor #00FFFFFF is called
     	Then the output should be: "Black"
+
+    Scenario: Color Convert Default param test
+        When ConvertColor is called with Default set to black
+        Then the output should be: "Black"

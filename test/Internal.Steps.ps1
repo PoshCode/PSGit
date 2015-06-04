@@ -32,6 +32,9 @@ param($color)
     
 }
 
+When 'ConvertColor is called with Default set to black' {
+    $script:result = &(gmo psgit){ConvertColor -default "black" }
+}
 
 Then "it will Throw a Terminating Error" {
 
