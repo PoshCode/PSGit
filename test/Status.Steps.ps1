@@ -142,7 +142,7 @@ When "Add-GitItem (.*)? is called" {
 # the output should be: "whatever"
 # the output should be: 
 #    """"multi-line string"""
-Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
+Then 'the output should be(?:.*(?<type>warning|error|information))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
     param($output, $type = "default")
     # TODO: add "AFTER" support for Gherkin so we can do this:
     Pop-Location; [Environment]::CurrentDirectory = $Pwd
@@ -152,6 +152,9 @@ Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>
         }
         "error" {
             $script:errors | % { $_.ToString() }| Must -ceq $output
+        }
+        "information" {
+            $global:information | % { $_.ToString() }| Must -ceq $output
         }
         default {
             $script:result | % { $_.ToString() }| Must -ceq $output
