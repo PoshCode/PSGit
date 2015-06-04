@@ -17,7 +17,7 @@
 
     Scenario: Color convert in ISE
     	Given we have WPF loaded
-    	When ConvertColor #00aaaaaa is called
+    	When ConvertColor #ffffff is called
     	Then the output should be: "White"
 
     Scenario: Color convert in ISE (mostly for codecov on if's)
@@ -31,5 +31,9 @@
     	Then the output should be: "Black"
 
     Scenario: Color Convert Default param test
-        When ConvertColor is called with Default set to black
-        Then the output should be: "Black"
+        When ConvertColor is called with Default set to red
+        Then the output should be: "Red"
+
+    Scenario: Color Convertwith no param
+        When ConvertColor is called
+        Then the output should be: "Yellow"

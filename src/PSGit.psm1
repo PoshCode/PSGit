@@ -38,18 +38,16 @@ function ConvertColor
         $color,
         $default="yellow"
     )
-
-    if(($color -as [ConsoleColor]) -ne $null)
-    {
-        [consolecolor]$color
-    }
-    elseif($color -eq $null)
+    if(!$color)
     {
         [consolecolor]$default
     }
+    elseif(($color -as [ConsoleColor]) -ne $null)
+    {
+        [consolecolor]$color
+    }
     else
     {
-        
         if("system.Windows.Media.Color" -as [type])
         {
             #if its a transparent color, just use the background color of the host

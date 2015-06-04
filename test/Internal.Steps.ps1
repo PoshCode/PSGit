@@ -20,11 +20,11 @@ param($type,$message)
     $script:result = &(gmo psgit){WriteMessage -type $args[0] -message $args[1]} $type $message
 }
 
-When 'ConvertColor (?<color>\S+) is called' {
+When 'ConvertColor (?<color>\S+)? ?is called' {
 param($color)
     #$script:errors = $null
     try {
-        $script:result = &(gmo psgit){ConvertColor -color "$args" } "$color"
+        $script:result = &(gmo psgit){ConvertColor -color $args[0] } "$color"
     }
     catch {
         $script:errors = $_
@@ -32,8 +32,8 @@ param($color)
     
 }
 
-When 'ConvertColor is called with Default set to black' {
-    $script:result = &(gmo psgit){ConvertColor -default "black" }
+When 'ConvertColor is called with Default set to red' {
+    $script:result = &(gmo psgit){ConvertColor -default "red" }
 }
 
 Then "it will Throw a Terminating Error" {
