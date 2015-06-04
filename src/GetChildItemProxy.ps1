@@ -44,18 +44,18 @@
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Get-ChildItem', [System.Management.Automation.CommandTypes]::Cmdlet)
             
-            Write-Verbose "path: $path" -Verbose
-            Write-Verbose "path type: $($path.gettype())" -Verbose
-            Write-Verbose "path count: $($path.Count)" -Verbose
-            
-            if(![string]::IsNullOrEmpty($path) -and (Get-GitRootFolder $Path))
+            if(![string]::IsNullOrEmpty($path) -and ($path | %{Get-GitRootFolder $_}))
             {
                 $scriptCmd = {
                     & $wrappedCmd @PSBoundParameters | % -Begin {
-                        $root = Get-GitRootFolder "$Path"
-                        $changes = Get-GitChange -Root $root  | select @{n='Path';e={join-path $root $_.path}},staged,change 
+                        $roots = $path | %{Get-GitRootFolder $_} | get-unique
+                        $changes = foreach($root in $roots){Get-GitChange -root $root | select @{n='Path';e={join-path $root $_.path}},staged,change } 
                     } -Process {
                         $file = $_
+                        foreach($change in $changes)
+                        {
+                            
+                        }
                         $change = $changes|? path -eq $file.fullname|select -ExpandProperty change
                         $staged = $changes|? path -eq $file.fullname|select -ExpandProperty staged
 
