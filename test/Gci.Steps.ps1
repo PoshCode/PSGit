@@ -8,14 +8,14 @@ When 'Get-ChildItem is called' {
 
 Then 'the resulting object should not have a Changed property' {
 
-    if($script:result | get-member -membertype noteproperty | ? name -eq Changed) {
+    if($script:result | get-member -membertype noteproperty | ? name -eq Change) {
         throw "Found Property, showing Git status when we are not in a repo"
     }
 }
 
 Then 'the resulting object should have a Changed property' {
 
-    if($script:result | get-member -membertype noteproperty | ? name -eq Changed) {
+    if($script:result | get-member -membertype noteproperty | ? name -eq Change) {
         
     }
     else {

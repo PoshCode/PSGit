@@ -44,25 +44,30 @@
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Get-ChildItem', [System.Management.Automation.CommandTypes]::Cmdlet)
             
-            if(![string]::IsNullOrEmpty($path) -and ($path | %{Get-GitRootFolder $_}))
+            if(![string]::IsNullOrEmpty($path) -and (Get-Command Get-GitRootFolder -ErrorAction SilentlyContinue) -and ($path | %{Get-GitRootFolder $_}))
             {
                 $scriptCmd = {
                     & $wrappedCmd @PSBoundParameters | % -Begin {
                         $roots = $path | %{Get-GitRootFolder $_} | get-unique
-                        $changes = foreach($root in $roots){Get-GitChange -root $root | select @{n='Path';e={join-path $root $_.path}},staged,change } 
+                        $changes = foreach($root in $roots){Get-GitChange -root $root -ShowIgnored | select @{n='Path';e={join-path $root ($_.path -replace '\\\\$','\*')}},staged,change } 
                     } -Process {
-                        $file = $_
-                        foreach($change in $changes)
+                        
+                        $fsItem = $_
+                        $info = if($fsItem.PSIsContainer)
                         {
-                            
+                            $changes|? {$fsItem.fullname -eq $_.path.TrimEnd('\','*') -or $fsItem.fullname -like $_.path }|select change, staged
                         }
-                        $change = $changes|? path -eq $file.fullname|select -ExpandProperty change
-                        $staged = $changes|? path -eq $file.fullname|select -ExpandProperty staged
+                        else
+                        {
+                            $changes|? {$fsItem.fullname -like $_.path}|select change, staged
+                        }
+                        
+                        
 
-                        $file | Add-Member -Name Change -value $change -MemberType NoteProperty
-                        $file | Add-Member -name Staged -Value $staged -MemberType NoteProperty
-                        $null=$file.pstypenames.insert(0,"$($file.gettype().fullname)#git")
-                        $file
+                        $fsItem | Add-Member -Name Change -value $info.change -MemberType NoteProperty
+                        $fsItem | Add-Member -name Staged -Value $info.staged -MemberType NoteProperty
+                        $null=$fsItem.pstypenames.insert(0,"$($fsItem.gettype().fullname)#git")
+                        $fsItem
                     }
                 }
             }
@@ -98,3 +103,4 @@
 }
 
 Update-FormatData $PSScriptRoot\filesystem.format.ps1xml
+
