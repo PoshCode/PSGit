@@ -9,12 +9,23 @@ Given "we have a command ([\w-]+)" {
     $script:command = Get-Command $command -Module PSGit
 }
 
-Given "we are NOT in a repository" {
+Given "we are NOT in a repository(?: with)?" {
+    param($table)
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
 
     Remove-Item TestDrive:\* -Recurse -Force
+
+    if($table) {
+        foreach($change in $table) {
+            switch($change.FileAction) {
+                "Created" {
+                    Set-Content $change.Name (Get-Date)
+                }
+            }
+        }
+    }
 }
 
 Given "we are in a git repository" {
