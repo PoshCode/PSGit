@@ -16,3 +16,10 @@ Feature: Get-ChildItem proxy function
             | Created    | FileTwo.ps1   |
         When Get-ChildItem is called
         Then the resulting object should have a Changed property
+    
+    Scenario: GCI test to cover the buffer code, which is in the proxy template
+        Given we are NOT in a repository with
+            | FileAction | Name          |
+            | Created    | FileOne.ps1   |
+        When Get-ChildItem -outbuffer 5 is called
+        Then the resulting object should not have a Changed property

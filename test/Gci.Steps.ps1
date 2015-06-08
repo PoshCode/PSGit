@@ -14,6 +14,9 @@ When 'Get-ChildItem is called' {
     $script:result = Get-ChildItem
 }
 
+When 'Get-ChildItem -outbuffer 5 is called' {
+    $script:result = Get-ChildItem -outbuffer 5
+}
 
 Then 'the resulting object should not have a Changed property' {
 
