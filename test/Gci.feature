@@ -8,7 +8,7 @@ Feature: Get-ChildItem proxy function
         When Get-ChildItem is called
         Then the resulting object should not have a Changed property
 
-    Scenario: GCI not in a repo
+    Scenario: GCI in a repo
         Given we have initialized a repository with
             | FileAction | Name          |
             | Created    | FileOne.ps1   |

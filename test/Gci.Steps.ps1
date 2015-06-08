@@ -1,7 +1,16 @@
-When 'Get-ChildItem is called' {
+BeforeScenario {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
+    Remove-Item TestDrive:\* -Recurse -Force
+}
+
+AfterScenario {
+    Pop-Location
+    [Environment]::CurrentDirectory = Convert-Path $Pwd
+}
+
+When 'Get-ChildItem is called' {
     $script:result = Get-ChildItem
 }
 
