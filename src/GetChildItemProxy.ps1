@@ -43,7 +43,7 @@
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Get-ChildItem', [System.Management.Automation.CommandTypes]::Cmdlet)
-            
+            write-debug "Path is: $path"
             if(![string]::IsNullOrEmpty($path) -and (Get-Command Get-GitRootFolder -ErrorAction SilentlyContinue) -and ($path | %{Get-GitRootFolder $_}))
             {
                 $scriptCmd = {
