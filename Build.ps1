@@ -26,7 +26,7 @@ if(Test-Path $ReleasePath) {
 
 ## Find dependency Package Files
 Write-Verbose "       Copying Packages"
-foreach($Package in ([xml](gc .\packages.config)).packages.package) {
+foreach($Package in ([xml](gc (join-path $path 'packages.config'))).packages.package) {
     $PackageSource = Resolve-Path "$Path\packages\$($Package.id)*\lib\*"  | sort Name | select -first 1 -expand Path
 
     Write-Verbose "COPY   $PackageSource\"
