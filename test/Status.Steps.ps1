@@ -24,7 +24,7 @@ Given "we have a command ([\w-]+)" {
 Given "we are NOT in a repository(?: with)?" {
     param($table)
     # Remove-Item TestDrive:\* -Recurse -Force
-    if(Test-Path .git){ throw "There Are Things Here!" }
+    if(Test-Path .git){ throw "There is a GIT repo Here!" }
     if($table) {
         foreach($change in $table) {
             switch($change.FileAction) {
