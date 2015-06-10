@@ -32,7 +32,7 @@ Write-Verbose "       Clean up old build"
 
 ## Find dependency Package Files
 Write-Verbose "       Copying Packages"
-foreach($Package in ([xml](gc .\packages.config)).packages.package) {
+foreach($Package in ([xml](Get-Content (Join-Path $Path packages.config))).packages.package) {
     $folder = Join-Path $Path "packages\$($Package.id)*"
     # Check for each TargetFramework, in order of preference, fall back to using the lib folder
     $targets = ($TargetFramework -replace '^','lib\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
