@@ -31,7 +31,7 @@ Scenario: There's no repository
 @wip
 Scenario: stage a change in an untracked file
 	Given we have initialized a repository by running New-Repository
-	And there is an untracked file called NewFile.txt
+	And there is an untracked file called NewFile.txt in the working directory
 	When Add-Change NewFile.txt is called
 	Then the status info should show that there are changes on the current branch
 	And the changes are in a file that is added to the staging area
@@ -53,45 +53,46 @@ Scenario: stage a change in an ignored file
 @wip
 Scenario: add more changes to an existing change in the staging area
 	Given we have a repository with
-		| ChangeState | FileName             |
+		| ChangeState | FileName         |
 		| Committed   | TrackedFile.txt  |
 		| Committed   | FileToDelete.txt |
-	And there is an untracked file called NewFile.txt
-	And I have deleted FileToDelete.txt from the working directory
-	When I change the content of TrackedFile.txt
-	And Add-Change -Update is called
+	And there is an untracked file NewFile.txt in the working directory
+	And FileToDelete.txt is deleted from the working directory
+	And there is a modified version of TrackedFile.txt in the working directory
+	When Add-Change -Update is called
 	Then the status info should show that there are changes on the current branch
-	And there are changes in a file is called TrackedFile.txt
-	And the file FileToBeDeleted.txt deleted from the staging area
-	And there is an untracked file called NewFile.txt
+		| ChangeState | FileName         |
+		| modified    | TrackedFile.txt  |
+		| deleted     | FileToDelete.txt |
+		| untracked   | NewFile.txt      |
 	
 @wip
 Scenario: add more changes to the staging area
 	Given we have a repository with
-		| ChangeState | FileName             |
+		| ChangeState | FileName         |
 		| Committed   | TrackedFile.txt  |
 		| Committed   | FileToDelete.txt |
-	And there is an untracked file called NewFile.txt
+	And there is an untracked file called NewFile.txt in the working directory
 	And I have deleted FileToDelete.txt from the working directory
-	When I change the content of TrackedFile.txt
+	When I change the content of TrackedFile.txt in the working directory
 	And Add-Change -All is called
 	Then the status info should show that there are changes on the current branch
-	And there are changes in a file is called TrackedFile.txt
-	And the file FileToDelete.txt deleted from the staging area
-	And there are changes in a new file added to the staging area
-	And the added file called NewFile.txt
+		| ChangeState | FileName        |
+		| modified    | TrackedFile.txt |
+		| added       | NewFile.txt     |
+	And the file FileToDelete.txt was removed from the staging area
 	
 @wip
 Scenario: add more changes to the staging area but remove nothing
 	Given we have a repository with
-		| ChangeState | FileName             |
+		| ChangeState | FileName         |
 		| Committed   | TrackedFile.txt  |
 		| Committed   | FileToDelete.txt |
-	And there is an untracked file called NewFile.txt
+	And there is an untracked file called NewFile.txt in the working directory
 	And I have deleted FileToDelete.txt from the working directory
-	When I change the content of TrackedFile.txt
+	When I change the content of TrackedFile.txt in the working directory
 	And Add-Change -NoDelete is called
 	Then the status info should show that there are changes on the current branch
-	And there are changes in a file is called TrackedFile.txt
-	And there are changes in a new file added to the staging area
-	And the added file called NewFile.txt
+		| ChangeState | FileName        |
+		| modified    | TrackedFile.txt |
+		| added       | NewFile.txt     |
