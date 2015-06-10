@@ -21,9 +21,28 @@ Given "we have a command ([\w-]+)" {
     $script:command = Get-Command $command -Module PSGit
 }
 
-Given "we are NOT in a repository" {
+Given "we are NOT in a repository(?: with)?" {
+    param($table)
     # Remove-Item TestDrive:\* -Recurse -Force
-    if(gci){ throw "There Are Things Here!" }
+    if(Test-Path .git){ throw "There Are Things Here!" }
+    if($table) {
+        foreach($change in $table) {
+            switch($change.FileAction) {
+                "Created" {
+                    Set-Content $change.Name (Get-Date)
+                }
+                "Modified" {
+                    Add-Content $change.Name (Get-Date)
+                }
+                "Removed" {
+                    Remove-Item $change.Name
+                }
+                "Renamed" {
+                    Rename-Item $change.Name $change.Value
+                }
+            }
+        }
+    }
 }
 Given "we are in an empty folder" {
     if(gci){ throw "There Are Things Here!" }
