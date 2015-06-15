@@ -1,3 +1,74 @@
+# Internal Functions
+#region Interal Functions
+function WriteMessage
+{
+    [CmdletBinding()]
+    Param
+    (
+        # The Type of message you'd like, its just a prefix to the message.
+        [Parameter(Mandatory=$true,Position=0)]
+        [string]
+        $Type,
+
+        # The message to display
+        [Parameter(Mandatory=$true,Position=1)]
+        [string]
+        $Message,
+        
+        # Color of the message, it will default to the hosts' verbose color.
+        [Parameter(Position=2)]
+        [ConsoleColor]
+        $ForegroundColor = ($host.PrivateData.VerboseForegroundColor|ConvertColor),
+        # Background color of the message, it will default to the hosts' verbose color.
+        [Parameter(Position=3)]
+        [ConsoleColor]
+        $BackgroundColor = ($host.PrivateData.VerboseBackgroundColor|ConvertColor -default "black")
+    )
+
+    #todo check to see if the preference is on or off
+    
+    Write-Host "$($Type.ToUpper()): $Message" -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor 
+}
+
+function ConvertColor
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline=$true)]
+        $color,
+        $default="yellow"
+    )
+    if(!$color)
+    {
+        [consolecolor]$default
+    }
+    elseif(($color -as [ConsoleColor]) -ne $null)
+    {
+        [consolecolor]$color
+    }
+    else
+    {
+        if("system.Windows.Media.Color" -as [type])
+        {
+            #if its a transparent color, just use the background color of the host
+            if($color -eq "#00FFFFFF") {$color = $host.PrivateData.ConsolePaneBackgroundColor}
+            if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
+            [int]$bright = if($color.R -gt 128 -bor $color.G -gt 128 -bor $color.B -gt 128){8}else{0}
+            [int]$r = if($color.R -gt 64){4}else{0}
+            [int]$g = if($color.G -gt 64){2}else{0}
+            [int]$b = if($color.B -gt 64){1}else{0}
+            [consolecolor]($bright -bor $r -bor $g -bor $b)
+        }
+        else
+        {
+            throw "Unable to process hosts default colors $color"
+        }
+    }
+}
+    
+#endregion
+
+
 function Get-RootFolder {
     #.Synopsis
     #   Search up the directory tree recursively for a git root (and corresponding .git folder)

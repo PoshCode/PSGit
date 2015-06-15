@@ -4,38 +4,37 @@ if(!(git config --get user.email)) {
     git config --global core.autocrlf "true"
 }
 
+BeforeScenario {
+    $script:repo = Convert-Path TestDrive:\
+    Push-Location TestDrive:\
+    [Environment]::CurrentDirectory = $repo
+    Remove-Item TestDrive:\* -Recurse -Force
+}
+
+AfterScenario {
+    Pop-Location
+    [Environment]::CurrentDirectory = Convert-Path $Pwd
+}
+
 Given "we have a command ([\w-]+)" {
     param($command)
     $script:command = Get-Command $command -Module PSGit
 }
 
 Given "we are NOT in a repository" {
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-
-    Remove-Item TestDrive:\* -Recurse -Force
+    # Remove-Item TestDrive:\* -Recurse -Force
+    if(gci){ throw "There Are Things Here!" }
+}
+Given "we are in an empty folder" {
+    if(gci){ throw "There Are Things Here!" }
 }
 
 Given "we are in a git repository" {
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-
-    Remove-Item TestDrive:\* -Recurse -Force
-
     New-GitRepository
 }
 
 Given "we have initialized a repository(?: with)?" {
     param($table)
-
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-
-    # Clear out any old stuff when we're asked to "initialize" a repository...
-    Remove-Item TestDrive:\* -Recurse -Force
 
     # TODO: replace with PSGit native commands
     git init
@@ -78,15 +77,6 @@ Given "we have added a submodule `"(\w+)`"" {
     param($module)
     # TODO: replace with PSGit native commands
     git submodule add https://github.com/PoshCode/PSGit.git $module 2>&1
-}
-
-
-Given "we are in an empty folder" {
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-
-    Remove-Item TestDrive:\* -Recurse -Force
 }
 
 
@@ -142,16 +132,17 @@ When "Add-GitItem (.*)? is called" {
 # the output should be: "whatever"
 # the output should be: 
 #    """"multi-line string"""
-Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
+Then 'the output should be(?:.*(?<type>warning|error|information))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
     param($output, $type = "default")
-    # TODO: add "AFTER" support for Gherkin so we can do this:
-    Pop-Location; [Environment]::CurrentDirectory = $Pwd
     switch($type) {
         "warning" {
             $script:warnings | % { $_.ToString() } | Must -ceq $output
         }
         "error" {
             $script:errors | % { $_.ToString() }| Must -ceq $output
+        }
+        "information" {
+            $global:information | % { $_.ToString() }| Must -ceq $output
         }
         default {
             $script:result | % { $_.ToString() }| Must -ceq $output
@@ -161,8 +152,6 @@ Then 'the output should be(?:.*(?<type>warning|error))?:(?:\s*(["''])?(?<output>
 }
 
 Then "there should be no output" {
-    # TODO: add "AFTER" support for Gherkin so we can do this:
-    Pop-Location; [Environment]::CurrentDirectory = $Pwd
 
     $script:result   | Must -BeNullOrEmpty
     $script:warnings | Must -BeNullOrEmpty
@@ -172,9 +161,6 @@ Then "there should be no output" {
 Then "the output should have" {
     param($Table)
     Write-Verbose ($Table | Out-String)
-
-    # TODO: add "AFTER" support for Gherkin so we can do this:
-    Pop-Location; [Environment]::CurrentDirectory = $Pwd
 
     foreach($Property in $Table) {
         $script:result | Must -Any $Property.Property -Eq $Property.Value
@@ -218,10 +204,6 @@ Then "the status of git should be" {
 Then 'there should be a ["''](.*)["''] folder' {
     param($folder)
     
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-
     if(!(Test-Path $folder -PathType Container))
     {
         throw "Folder ($folder) not found!"
@@ -233,10 +215,6 @@ Then 'there should be a ["''](.*)["''] folder' {
 Then 'there should NOT be a ["''](.*)["''] file' {
     param($file)
     
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
-    
     if(Test-Path $file -PathType Leaf)
     {
         throw "File ($file) found! Should not be there!"
@@ -247,10 +225,6 @@ Then 'there should NOT be a ["''](.*)["''] file' {
 
 Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
     param($file,$content)
-
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
-    [Environment]::CurrentDirectory = $repo
 
     if(Test-Path $file -PathType Leaf)
     {

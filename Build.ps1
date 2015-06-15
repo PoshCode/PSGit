@@ -3,6 +3,11 @@ param(
     [Alias("PSPath")]
     [string]$Path = $PSScriptRoot,
     [string]$ModuleName = $(Split-Path $Path -Leaf),
+    # The target framework for .net (for packages), with fallback versions
+    # The default supports PS3:  "net40","net35","net20","net45"
+    # To only support PS4, use:  "net45","net40","net35","net20"
+    # To support PS2, you use:   "net35","net20"
+    [string[]]$TargetFramework = @("net40","net35","net20","net45"),
     [switch]$Monitor,
     [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER}
 )
@@ -15,19 +20,26 @@ $OutputPath = Join-Path $Path output
 $null = mkdir $OutputPath -Force
 
 # If the RevisionNumber is specified as ZERO, this is a release build
-Write-Verbose "       Clean up old build"
 $Version = &"${PSScriptRoot}\Get-Version.ps1" -Module (Join-Path $Path\src "${ModuleName}.psd1") -DevBuild:$RevisionNumber -RevisionNumber:$RevisionNumber
-
 $ReleasePath = Join-Path $Path $Version
+
+Write-Verbose "OUTPUT Release Path: $ReleasePath"
 if(Test-Path $ReleasePath) {
+Write-Verbose "       Clean up old build"
     Write-Verbose "DELETE $ReleasePath\"
     Remove-Item $ReleasePath -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 ## Find dependency Package Files
 Write-Verbose "       Copying Packages"
-foreach($Package in ([xml](gc .\packages.config)).packages.package) {
-    $PackageSource = Resolve-Path "$Path\packages\$($Package.id)*\lib\*"  | sort Name | select -first 1 -expand Path
+foreach($Package in ([xml](Get-Content (Join-Path $Path packages.config))).packages.package) {
+    $folder = Join-Path $Path "packages\$($Package.id)*"
+    # Check for each TargetFramework, in order of preference, fall back to using the lib folder
+    $targets = ($TargetFramework -replace '^','lib\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
+    $PackageSource = Get-Item $targets -ErrorAction SilentlyContinue | Select -First 1 -Expand FullName
+    if(!$PackageSource) {
+        throw "Could not find a lib folder for $($Package.id) from package. You may need to run Setup.ps1"
+    }
 
     Write-Verbose "COPY   $PackageSource\"
     $null = robocopy $PackageSource $ReleasePath\lib /MIR /NP /LOG:"$OutputPath\build.log" /R:2 /W:15
@@ -52,6 +64,7 @@ Set-Content $ReleaseManifest ((Get-Content $ReleaseManifest) -Replace "^(\s*)Mod
 ## TODO: Use Grunt or write something native to handle this
 #        The robocopy solution has a resolution of 1 minute...
 if($Monitor) {
+    Write-Verbose "MONITOR Path: $Path"
     Start-Job -Name "${ModuleName}Build" {
         param($ReleasePath, $SourcePath=$(Split-Path $ReleasePath))
         Set-Location $SourcePath
