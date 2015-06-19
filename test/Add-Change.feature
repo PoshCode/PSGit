@@ -7,15 +7,15 @@ Feature: Add changes to a repo
 Scenario: Add-Change should have similar parameters to git add
 	Given we have a command Add-Change
 	Then it should have parameters:
-		| Name				  | Type     |
-		| [PathSpec]		  | String[] |
-		| IncludeIgnored	  | Switch   |
-		| UpdateStagedChanges | Switch   |
-		| All				  | Switch   |
-		| NoRemove			  | Switch   |
+		| Name				   | Type     |
+		| [PathSpec]		   | String[] |
+		| IncludeIgnored	   | Switch   |
+		| UpdateStagedChanges  | Switch   |
+		| All				   | Switch   |
+		| IgnoreDeletedChanges | Switch   |
 # -IncludeIgnored maps to --force
 # -UpdateExisting maps to --update
-# -NoRemove maps to --no-all
+# -IgnoreDeletedChanges maps to --no-all
 # -ErrorAction Continue maps to --ignore-errors, but that would be default
 # -WhatIf maps to --dry-run
 # -Verbose maps to -verbose (duh)
@@ -60,7 +60,7 @@ Scenario: add more changes to an existing change in the staging area
 		| ChangeState | FileName         |
 		| Committed   | TrackedFile.txt  |
 		| Committed   | FileToDelete.txt |
-	And there is an untracked file NewFile.txt in the working directory
+	And there is an untracked file NewFile.txt in a subfolder NewFolder of the working directory
 	And FileToDelete.txt is deleted from the working directory
 	And there is a modified version of TrackedFile.txt in the working directory
 	When Add-Change -UpdateStagedChanges is called
@@ -69,7 +69,7 @@ Scenario: add more changes to an existing change in the staging area
 		| ChangeState | FileName         |
 		| modified    | TrackedFile.txt  |
 		| deleted     | FileToDelete.txt |
-		| untracked   | NewFile.txt      |
+		| untracked   | NewFolder/NewFile.txt      |
 	
 @wip
 Scenario: add more changes to the staging area
@@ -77,7 +77,7 @@ Scenario: add more changes to the staging area
 		| ChangeState | FileName         |
 		| Committed   | TrackedFile.txt  |
 		| Committed   | FileToDelete.txt |
-	And there is an untracked file called NewFile.txt in the working directory
+	And there is an untracked file NewFile.txt in a subfolder NewFolder of the working directory
 	And I have deleted FileToDelete.txt from the working directory
 	And I have changed the content of TrackedFile.txt in the working directory
 	When Add-Change -All is called
@@ -85,7 +85,7 @@ Scenario: add more changes to the staging area
 	Then the status info should show that there are changes on the current branch
 		| ChangeState | FileName         |
 		| modified    | TrackedFile.txt  |
-		| added       | NewFile.txt      |
+		| added       | NewFolder/NewFile.txt      |
 		| deleted     | FileToDelete.txt |
 
 # same as above, but with piping the changes to Add-Change instead of calling -All
@@ -115,7 +115,7 @@ Scenario: add more changes to the staging area but remove nothing
 	And there is an untracked file called NewFile.txt in the working directory
 	And I have deleted FileToDelete.txt from the working directory
 	And I have changed the content of TrackedFile.txt in the working directory
-	When Add-Change -NoDelete is called
+	When Add-Change -IgnoreDeletedChanges is called
 	And I ask git for a status
 	Then the status info should show that there are changes on the current branch
 		| ChangeState | FileName        |
@@ -137,3 +137,20 @@ Scenario: add more changes to the staging area and provide verbose output
 		| modify      | TrackedFile.txt  |
 		| add         | NewFile.txt      |
 		| delete      | FileToDelete.txt |
+	
+@wip
+Scenario: add more changes to the staging area and provide verbose output
+	Given we have a repository with
+		| ChangeState | FileName         |
+		| Committed   | TrackedFile.txt  |
+		| Committed   | FileToDelete.txt |
+	And there is an untracked file called NewFile.txt in the working directory
+	And I have deleted FileToDelete.txt from the working directory
+	And I have changed the content of TrackedFile.txt in the working directory
+	When Add-Change -All -WhatIf is called
+	Then the output should show that the changes made to the staging area
+		| ChangeState | FileName         |
+		| modify      | TrackedFile.txt  |
+		| add         | NewFile.txt      |
+		| delete      | FileToDelete.txt |
+	But the changes were not applied to the staging area
