@@ -52,6 +52,7 @@
     <Compile Include="test\Must.Steps.ps1" />
     <Compile Include="test\Must.Tests.ps1" />
     <Compile Include="test\NewRepository.feature" />
+    <Compile Include="test\Save-Change.feature" />
     <Compile Include="test\Send-CodeCov.ps1" />
     <Compile Include="test\Status.Steps.ps1" />
   </ItemGroup>
