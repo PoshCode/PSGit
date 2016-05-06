@@ -13,55 +13,12 @@ Feature: Get repository status
         Given we have initialized a repository
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value          |
-            | Branch   | master         |
-            | Note     | Initial Commit |
+            | Property | Value   |
+            | Branch   | master  |
+            | AheadBy  | $null   |
+            | BehindBy | $null   |
 
- 
-    Scenario: New Files in Repository
-        Given we have initialized a repository with
-            | FileAction | Name          |
-            | Created    | FileOne.ps1   |
-            | Created    | FileTwo.ps1   |
-            | Created    | FileThree.ps1 |
-        When Get-GitInfo is called
-        Then the output should have
-            | Property | Value          |
-            | Branch   | master         |
-            | Note     | Initial Commit |
-
- 
-    Scenario: Added Files to Stage
-        Given we have initialized a repository with
-            | FileAction | Name          |
-            | Created    | FileOne.ps1   |
-            | Created    | FileTwo.ps1   |
-            | Created    | FileThree.ps1 |
-            | Added      | *             |
-        When Get-GitInfo is called
-        Then the output should have
-            | Property | Value          |
-            | Branch   | master         |
-            | Note     | Initial Commit |
-
-
-    Scenario: Added and Modified Files
-        Given we have initialized a repository with
-            | FileAction | Name          |
-            | Created    | FileOne.ps1   |
-            | Created    | FileTwo.ps1   |
-            | Created    | FileThree.ps1 |
-            | Added      | *             |
-            | Modified   | FileOne.ps1   |
-            | Modified   | FileThree.ps1 |
-        When Get-GitInfo is called
-        Then the output should have
-            | Property | Value          |
-            | Branch   | master         |
-            | Note     | Initial Commit |
-
-
-    Scenario: Added, Commited with note and Modified Files
+    Scenario: Local Repository with commits and modified Files
         Given we have initialized a repository with
             | FileAction | Name           |
             | Created    | FileOne.ps1    |
@@ -73,6 +30,98 @@ Feature: Get repository status
             | Modified   | FileThree.ps1  |
         When Get-GitInfo is called
         Then the output should have
-            | Property | Value       |
-            | Branch   | master      |
-            | Note     | Simple Edit |
+            | Property | Value   |
+            | Branch   | master  |
+            | AheadBy  | $null   |
+            | BehindBy | $null   |
+
+    Scenario: Cloned Repository with commits and Modified Files
+        Given we have cloned a repository and
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Created    | FileTwo.ps1    |
+            | Added      | *              |
+            | Commited   | Simple Edit    |
+            | Modified   | FileOne.ps1    |
+            | Created    | FileThree.ps1  |
+            | Modified   | FileThree.ps1  |
+        When Get-GitInfo is called
+        Then the output should have
+            | Property | Value  |
+            | Branch   | master |
+            | AheadBy  | 1      |
+            | BehindBy | 0      |
+
+    Scenario: Cloned Repository with multiple commits
+        Given we have cloned a repository and
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | New File       |
+            | Modified   | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | Simple Edit    |
+            | Created    | FileThree.ps1  |
+            | Modified   | FileThree.ps1  |
+            | Added      | *              |
+            | Commited   | New Third File |
+        When Get-GitInfo is called
+        Then the output should have
+            | Property | Value  |
+            | Branch   | master |
+            | AheadBy  | 3      |
+            | BehindBy | 0      |
+
+    Scenario: Push and commit more
+        Given we have cloned a repository and
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | Add File One   |
+            | Push       |                |
+            | Modified   | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | Edit File One  |
+            | Created    | FileThree.ps1  |
+            | Modified   | FileThree.ps1  |
+            | Added      | *              |
+            | Commited   | Add File Three |
+        When Get-GitInfo is called
+        Then the output should have
+            | Property | Value  |
+            | Branch   | master |
+            | AheadBy  | 2      |
+            | BehindBy | 0      |
+
+    Scenario: Upstream Changes 
+        Given we have cloned a repository and
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | Add File One   |
+            | Push       |                |
+            | Reset      | HEAD~1         |
+        When Get-GitInfo is called
+        Then the output should have
+            | Property | Value  |
+            | Branch   | master |
+            | AheadBy  | 0      |
+            | BehindBy | 1      |
+
+    Scenario: Upstream changes and local changes
+        Given we have cloned a repository and
+            | FileAction | Name           |
+            | Created    | FileOne.ps1    |
+            | Added      | *              |
+            | Commited   | Add File One   |
+            | Push       |                |
+            | Reset      | HEAD~1         |
+            | Created    | FileTwo.ps1    |
+            | Added      | *              |
+            | Commited   | Add File Two   |
+        When Get-GitInfo is called
+        Then the output should have
+            | Property | Value  |
+            | Branch   | master |
+            | AheadBy  | 1      |
+            | BehindBy | 1      |

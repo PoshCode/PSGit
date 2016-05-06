@@ -10,7 +10,6 @@ Feature: Initialize a blank repository
         Then the output should have
             | Property | Value          |
             | Branch   | master         |
-            | Note     | Initial Commit |
         And there should be a "./.git/refs/heads" folder
         And there should be a "./.git/refs/tags" folder
         And there should be a "./.git/objects" folder
