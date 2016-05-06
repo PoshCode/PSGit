@@ -18,7 +18,7 @@ AfterScenario {
 
 Given "we have a command ([\w-]+)" {
     param($command)
-    $script:command = Get-Command $command -Module PSGit
+    $script:command = Get-Command $command -Module PSGit -ErrorAction Stop
 }
 
 Given "we are NOT in a repository" {
@@ -73,6 +73,73 @@ Given "we have initialized a repository(?: with)?" {
     }
 }
 
+
+Given "we have cloned a repository(?: and)?" {
+    param($table)
+
+    mkdir source
+    pushd .\source
+    # TODO: replace with PSGit native commands
+    git init
+    Set-Content SourceOne.ps1   (Get-Date)
+    Set-Content SourceTwo.ps1   (Get-Date)
+    git add Source*
+    git commit -m "Initial Commit"
+    popd
+
+    &{[CmdletBinding()]param() git clone --bare .\source } 2>..\git.log
+
+    mkdir copy
+    cd .\copy
+
+    # git clone outputs information to stderr for no reason
+    &{[CmdletBinding()]param() git clone ..\source.git . } 2>..\git.log
+
+    if($table) {
+        foreach($change in $table) {
+            switch($change.FileAction) {
+                "Created" {
+                    Set-Content $change.Name (Get-Date)
+                }
+                "Added" {
+                    # TODO: replace with PSGit native commands
+                    git add --all $pathspec
+                }
+                "Ignore" {
+                    # TODO: replace with PSGit native commands
+                    Add-Content .gitignore $change.Name
+                    git add .\.gitignore
+                    git commit -m "Ignore $($change.Name)"
+                }
+                "Modified" {
+                    Add-Content $change.Name (Get-Date)
+                }
+                "Commited" {
+                    # TODO: replace with PSGit native commands
+                    git commit -m "$($change.Name)"
+                }
+                "Removed" {
+                    Remove-Item $change.Name
+                }
+                "Renamed" {
+                    Rename-Item $change.Name $change.Value
+                }
+                "Push" {
+                    &{[CmdletBinding()]param() 
+
+                        git push
+
+                    } 2>..\git.log
+                }
+                "Reset" {
+                    git reset --hard $change.Name
+                }
+            }
+        }
+    }
+}
+
+
 Given "we have added a submodule `"(\w+)`"" {
     param($module)
     # TODO: replace with PSGit native commands
@@ -95,25 +162,24 @@ When "Get-GitChange (.*)? ?is called" {
         $pathspec = $newspec
         $Options.HideSubmodules = $true
     }   
-    
 
-    $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options
+    $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 }
 When "Get-GitInfo (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
-        $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+        $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     } else {
-        $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings
+        $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     }
 }
 
 When "New-GitRepository (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
-        New-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     } else {
-        New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     }
 
 }
@@ -163,7 +229,12 @@ Then "the output should have" {
     Write-Verbose ($Table | Out-String)
 
     foreach($Property in $Table) {
-        $script:result | Must -Any $Property.Property -Eq $Property.Value
+        if($Property.Value -ne '$null') {
+            $script:result | Must -Any $Property.Property -Eq $Property.Value
+        } else {
+            $script:result | Must -Any $Property.Property -Eq $null
+        }
+
     }
 }
 
