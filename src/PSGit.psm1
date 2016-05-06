@@ -219,6 +219,15 @@ function Get-Change {
     }
 }
 
+$BranchProperties = 
+    @{ Name="Branch"; Expr={$_.Name}}, 
+    @{ Name="IsHead"; Expr={ $_.IsCurrentRepositoryHead}}, "IsRemote", "IsTracking", 
+    @{ Name="Tip"; Expr={$_.Tip.Sha}}, 
+    @{ Name="Remote"; expr = { $_.Remote.Url } }, 
+    @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }}, 
+    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy}}, 
+    @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }}
+
 # TODO: DOCUMENT ME
 function Get-Info {
     [CmdletBinding()]
@@ -236,7 +245,11 @@ function Get-Info {
 
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
-            $repo.Head           
+
+            # We have to transform the object to keep the data around after .Dispose()
+            $repo.Head | 
+                Select-Object $BranchProperties |
+                ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
         } finally {
             $repo.Dispose()
         }
@@ -263,11 +276,15 @@ function Get-Branch {
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
 
-            if($Force) {
-                $repo.Branches
-            } else {
-                $repo.Branches | Where-Object { !$_.IsRemote }
-            }
+            $(
+                if($Force) {
+                    $repo.Branches
+                } else {
+                    $repo.Branches | Where-Object { !$_.IsRemote }
+                }
+            # We have to transform the object to keep the data around after .Dispose()
+            ) | Select-Object $BranchProperties |
+                ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
            
         } finally {
             $repo.Dispose()

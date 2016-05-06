@@ -5,6 +5,7 @@
         <Name>Git.Branch</Name>
         <ViewSelectedBy>
             <TypeName>LibGit2Sharp.Branch</TypeName>
+            <TypeName>PSGit.Branch</TypeName>
         </ViewSelectedBy>
         <!-- <GroupBy>
             <PropertyName>Result</PropertyName>
@@ -25,7 +26,7 @@
                     <Label>IsRemote</Label>
                 </TableColumnHeader>
                 <TableColumnHeader>
-                    <Label>Remote.Url</Label>
+                    <Label>Remote</Label>
                 </TableColumnHeader>
                 <TableColumnHeader>
                     <Label>Ahead</Label>
@@ -51,25 +52,25 @@
                         </TableColumnItem>
                         <TableColumnItem>
                             <ScriptBlock>
-                                $_.Tip.Sha.Substring(0,7)
+                                $_.Tip.ToString().Substring(0,7)
                             </ScriptBlock>
                         </TableColumnItem>
                         <TableColumnItem>
-                            <PropertyName>IsCurrentRepositoryHead</PropertyName>
+                            <PropertyName>IsHead</PropertyName>
                         </TableColumnItem>
                         <TableColumnItem>
                             <PropertyName>IsRemote</PropertyName>
                         </TableColumnItem>
                         <TableColumnItem>
                             <ScriptBlock>
-                                $_.Remote.Url
+                                $_.Remote
                             </ScriptBlock>
                         </TableColumnItem>
                         <TableColumnItem>
-                            <PropertyName>AheadBy</PropertyName>
+                            <PropertyName>Ahead</PropertyName>
                         </TableColumnItem>
                         <TableColumnItem>
-                            <PropertyName>BehindBy</PropertyName>
+                            <PropertyName>Behind</PropertyName>
                         </TableColumnItem>
                     </TableColumnItems>
                 </TableRowEntry>

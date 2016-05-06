@@ -8,15 +8,15 @@
                 <ReferencedMemberName>Name</ReferencedMemberName>
             </AliasProperty>
             <ScriptProperty>
-                <Name>AheadBy</Name>
+                <Name>Ahead</Name>
                 <GetScriptBlock>
-                    $this.TrackingDetails.AheadBy
+                    $this.TrackingDetails.Ahead
                 </GetScriptBlock>
             </ScriptProperty>
             <ScriptProperty>
-                <Name>BehindBy</Name>
+                <Name>Behind</Name>
                 <GetScriptBlock>
-                    $this.TrackingDetails.BehindBy
+                    $this.TrackingDetails.Behind
                 </GetScriptBlock>
             </ScriptProperty>
         </Members>

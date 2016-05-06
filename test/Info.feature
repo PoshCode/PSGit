@@ -15,8 +15,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value   |
             | Branch   | master  |
-            | AheadBy  | $null   |
-            | BehindBy | $null   |
+            | Ahead    | $null   |
+            | Behind   | $null   |
 
     Scenario: Local Repository with commits and modified Files
         Given we have initialized a repository with
@@ -32,8 +32,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value   |
             | Branch   | master  |
-            | AheadBy  | $null   |
-            | BehindBy | $null   |
+            | Ahead    | $null   |
+            | Behind   | $null   |
 
     Scenario: Cloned Repository with commits and Modified Files
         Given we have cloned a repository and
@@ -49,8 +49,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value  |
             | Branch   | master |
-            | AheadBy  | 1      |
-            | BehindBy | 0      |
+            | Ahead    | 1      |
+            | Behind   | 0      |
 
     Scenario: Cloned Repository with multiple commits
         Given we have cloned a repository and
@@ -69,8 +69,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value  |
             | Branch   | master |
-            | AheadBy  | 3      |
-            | BehindBy | 0      |
+            | Ahead    | 3      |
+            | Behind   | 0      |
 
     Scenario: Push and commit more
         Given we have cloned a repository and
@@ -90,8 +90,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value  |
             | Branch   | master |
-            | AheadBy  | 2      |
-            | BehindBy | 0      |
+            | Ahead    | 2      |
+            | Behind   | 0      |
 
     Scenario: Upstream Changes 
         Given we have cloned a repository and
@@ -105,8 +105,8 @@ Feature: Get repository status
         Then the output should have
             | Property | Value  |
             | Branch   | master |
-            | AheadBy  | 0      |
-            | BehindBy | 1      |
+            | Ahead    | 0      |
+            | Behind   | 1      |
 
     Scenario: Upstream changes and local changes
         Given we have cloned a repository and
@@ -123,5 +123,5 @@ Feature: Get repository status
         Then the output should have
             | Property | Value  |
             | Branch   | master |
-            | AheadBy  | 1      |
-            | BehindBy | 1      |
+            | Ahead    | 1      |
+            | Behind   | 1      |
