@@ -238,7 +238,12 @@ function Get-Info {
 
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
-            $repo.Head | Select @{ Name="Branch"; Expr = { $_.Name } } -Expand TrackingDetails
+            $repo.Head           
+        } finally {
+            $repo.Dispose()
+        }
+    }
+}
            
         } finally {
             $repo.Dispose()
