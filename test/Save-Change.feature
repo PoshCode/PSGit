@@ -4,30 +4,30 @@ Feature: Commit staged changes to the Repository
 	I want to save the changes I made in my repository
 	So that I can restore a previous state of my work whenever I need to
 
-Scenario: Save-Change should have similar paramteres as git commit
-	Given we have a command Save-Change
-	Then it should have parameters:
-		| Name                                   | Type     |
-		| Message                                | String[] |
-		| CopyAuthorshipAndMessageFromChange     | String   |
-		| CopyAuthorshipAndEditMessageFromChange | String   |
-		| MessageTemplate                        | String   |
-		| Author                                 | String   |
-		| ModifyLastSavedChange                  | Switch   |
-		| EditMessage                            | Switch   |
-		| KeepMessage                            | Switch   |
-		
-	# -Message maps to -m/--message
-	# -CopyAuthorshipAndMessageFromChange maps to -C/--reuse-message
-	# -CopyAuthorshipAndEditMessageFromChange maps to -c/reedit-message
-	# -MessageTemplate maps to -t/--template
-	# -Author maps to --author
-	# -EditMessage maps to -e/--edit
-	# -KeepMessage maps to --no-edit
-	# ignoring pathspecs, --all, --patch, --fixup, --squash, --reset-author, 
-	#   --signoff,  --no-verify, --allow-empty, --allow-empty-message, 
-	#   --no-post-rewrite, --include, --gpg-sign, --no-gpg-sign, -F/--file for the time being
-	# pathspec will not be provided with PSGit. Any selection of what to commit should be done using Add-Change instead
+	Scenario: Save-Change should have similar paramteres as git commit
+		Given we have a command Save-Change
+		Then it should have parameters:
+			| Name                                   | Type     |
+			| Message                                | String[] |
+			| CopyAuthorshipAndMessageFromChange     | String   |
+			| CopyAuthorshipAndEditMessageFromChange | String   |
+			| MessageTemplate                        | String   |
+			| Author                                 | String   |
+			| ModifyLastSavedChange                  | Switch   |
+			| EditMessage                            | Switch   |
+			| KeepMessage                            | Switch   |
+			
+		# -Message maps to -m/--message
+		# -CopyAuthorshipAndMessageFromChange maps to -C/--reuse-message
+		# -CopyAuthorshipAndEditMessageFromChange maps to -c/reedit-message
+		# -MessageTemplate maps to -t/--template
+		# -Author maps to --author
+		# -EditMessage maps to -e/--edit
+		# -KeepMessage maps to --no-edit
+		# ignoring pathspecs, --all, --patch, --fixup, --squash, --reset-author, 
+		#   --signoff,  --no-verify, --allow-empty, --allow-empty-message, 
+		#   --no-post-rewrite, --include, --gpg-sign, --no-gpg-sign, -F/--file for the time being
+		# pathspec will not be provided with PSGit. Any selection of what to commit should be done using Add-Change instead
 
 	@wip
 	Scenario: Commit all staged changes
