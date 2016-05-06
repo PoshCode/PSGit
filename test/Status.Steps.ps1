@@ -36,36 +36,46 @@ Given "we are in a git repository" {
 Given "we have initialized a repository(?: with)?" {
     param($table)
 
+    Write-Verbose "Initalizing Repository"
+    Write-Verbose "using git: $((gcm git)[0].Path)"
     # TODO: replace with PSGit native commands
     git init
+    Write-Verbose "Initalized Repository"
 
     if($table) {
         foreach($change in $table) {
             switch($change.FileAction) {
                 "Created" {
+                    Write-Verbose "Creating $($change.Name)"
                     Set-Content $change.Name (Get-Date)
                 }
                 "Added" {
+                    Write-Verbose "Adding $($pathspec)"
                     # TODO: replace with PSGit native commands
                     git add --all $pathspec
                 }
                 "Ignore" {
+                    Write-Verbose "Ignore $($change.Name)"
                     # TODO: replace with PSGit native commands
                     Add-Content .gitignore $change.Name
                     git add .\.gitignore
                     git commit -m "Ignore $($change.Name)"
                 }
                 "Modified" {
+                    Write-Verbose "Modify $($change.Name)"
                     Add-Content $change.Name (Get-Date)
                 }
                 "Commited" {
+                    Write-Verbose "Commit $($change.Name)"
                     # TODO: replace with PSGit native commands
                     git commit -m "$($change.Name)"
                 }
                 "Removed" {
+                    Write-Verbose "Remove $($change.Name)"
                     Remove-Item $change.Name
                 }
                 "Renamed" {
+                    Write-Verbose "Rename $($Change.Name) to $($Change.Value)"
                     Rename-Item $change.Name $change.Value
                 }
             }
