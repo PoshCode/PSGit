@@ -237,22 +237,7 @@ function Get-Info {
 
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
-            # the Message/Note seems to be in multiple locations, more testing will need to be done.
-            $message = $repo.Commits | select -first 1 -ExpandProperty Message 
-            
-            $message = if($message)
-            {
-                $message.trim()
-            }
-            else
-            {
-                "Initial Commit"
-            }
-            
-            [pscustomobject]@{
-                Branch=$repo.Head.Name
-                Note=$message
-            }
+            $repo.Head | Select @{ Name="Branch"; Expr = { $_.Name } } -Expand TrackingDetails
            
         } finally {
             $repo.Dispose()
