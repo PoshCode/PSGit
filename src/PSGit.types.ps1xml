@@ -8,13 +8,13 @@
                 <ReferencedMemberName>Name</ReferencedMemberName>
             </AliasProperty>
             <ScriptProperty>
-                <Name>Ahead</Name>
+                <Name>AheadBy</Name>
                 <GetScriptBlock>
                     $this.TrackingDetails.AheadBy
                 </GetScriptBlock>
             </ScriptProperty>
             <ScriptProperty>
-                <Name>Behind</Name>
+                <Name>BehindBy</Name>
                 <GetScriptBlock>
                     $this.TrackingDetails.BehindBy
                 </GetScriptBlock>

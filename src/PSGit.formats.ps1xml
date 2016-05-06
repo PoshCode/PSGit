@@ -66,10 +66,10 @@
                             </ScriptBlock>
                         </TableColumnItem>
                         <TableColumnItem>
-                            <PropertyName>Ahead</PropertyName>
+                            <PropertyName>AheadBy</PropertyName>
                         </TableColumnItem>
                         <TableColumnItem>
-                            <PropertyName>Behind</PropertyName>
+                            <PropertyName>BehindBy</PropertyName>
                         </TableColumnItem>
                     </TableColumnItems>
                 </TableRowEntry>
