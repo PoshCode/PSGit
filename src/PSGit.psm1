@@ -1,10 +1,8 @@
 # Internal Functions
 #region Interal Functions
-function WriteMessage
-{
+function WriteMessage {
     [CmdletBinding()]
-    Param
-    (
+    param (
         # The Type of message you'd like, its just a prefix to the message.
         [Parameter(Mandatory=$true,Position=0)]
         [string]
@@ -30,26 +28,21 @@ function WriteMessage
     Write-Host "$($Type.ToUpper()): $Message" -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor 
 }
 
-function ConvertColor
-{
+function ConvertColor {
     [CmdletBinding()]
-    param(
+    param (
         [Parameter(ValueFromPipeline=$true)]
         $color,
         $default="yellow"
     )
-    if(!$color)
-    {
+    if(!$color) {
         [consolecolor]$default
     }
-    elseif(($color -as [ConsoleColor]) -ne $null)
-    {
+    elseif(($color -as [ConsoleColor]) -ne $null) {
         [consolecolor]$color
     }
-    else
-    {
-        if("system.Windows.Media.Color" -as [type])
-        {
+    else {
+        if("system.Windows.Media.Color" -as [type]) {
             #if its a transparent color, just use the background color of the host
             if($color -eq "#00FFFFFF") {$color = $host.PrivateData.ConsolePaneBackgroundColor}
             if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
@@ -59,8 +52,7 @@ function ConvertColor
             [int]$b = if($color.B -gt 64){1}else{0}
             [consolecolor]($bright -bor $r -bor $g -bor $b)
         }
-        else
-        {
+        else {
             throw "Unable to process hosts default colors $color"
         }
     }
@@ -73,7 +65,7 @@ function Get-RootFolder {
     #.Synopsis
     #   Search up the directory tree recursively for a git root (and corresponding .git folder)
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
-    param(
+    param (
         # Where to start searching
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -92,7 +84,7 @@ function Get-RootFolder {
 # TODO: DOCUMENT ME
 function Get-Change {
     [CmdletBinding(DefaultParameterSetName="IndexAndWorkDir")]
-    param(
+    param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd,
@@ -231,7 +223,7 @@ function Get-Change {
 
 function Get-Info {
     [CmdletBinding()]
-    param(
+    param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd
@@ -292,17 +284,14 @@ function Get-Info {
 # } -Force
 
 
-function New-Repository
-{
+function New-Repository {
     [CmdletBinding()]
-    Param
-    (
+    param (
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd
     )
-    End
-    {
+    end {
         $Path = Convert-Path $Root
         # Not sure why this is needed, but if you do a folder on the root it fails
         $Path = Join-Path $path "." 
