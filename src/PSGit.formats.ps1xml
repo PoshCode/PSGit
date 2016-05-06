@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+<ViewDefinitions>
+    <View>
+        <Name>Git.Branch</Name>
+        <ViewSelectedBy>
+            <TypeName>LibGit2Sharp.Branch</TypeName>
+        </ViewSelectedBy>
+        <!-- <GroupBy>
+            <PropertyName>Result</PropertyName>
+            <Label>Result</Label>
+        </GroupBy> -->
+        <TableControl>
+            <TableHeaders>
+                <TableColumnHeader>
+                    <Label>Branch</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Tip</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>IsHead</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>IsRemote</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Remote.Url</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Ahead</Label>
+                    <Width>5</Width>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Behind</Label>
+                    <Width>6</Width>
+                </TableColumnHeader>
+                <!--
+                <TableColumnHeader>
+                    <Alignment>Right</Alignment>
+                    <Label>Category</Label>
+                    <Width>20</Width>
+                </TableColumnHeader>
+                -->
+            </TableHeaders>
+            <TableRowEntries>
+                <TableRowEntry>
+                    <TableColumnItems>
+                        <TableColumnItem>
+                            <PropertyName>Name</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <ScriptBlock>
+                                $_.Tip.Sha.Substring(0,7)
+                            </ScriptBlock>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>IsCurrentRepositoryHead</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>IsRemote</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <ScriptBlock>
+                                $_.Remote.Url
+                            </ScriptBlock>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>Ahead</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>Behind</PropertyName>
+                        </TableColumnItem>
+                    </TableColumnItems>
+                </TableRowEntry>
+            </TableRowEntries>
+        </TableControl>
+    </View>
+</ViewDefinitions>
+</Configuration>
