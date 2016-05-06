@@ -57,9 +57,7 @@ function ConvertColor {
         }
     }
 }
-    
 #endregion
-
 
 function Get-RootFolder {
     #.Synopsis
@@ -244,12 +242,39 @@ function Get-Info {
         }
     }
 }
+
+# TODO: DOCUMENT ME
+function Get-Branch {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd,
+
+        [Switch]$Force
+    )
+    end {
+        $Path = Get-RootFolder $Root
+        if(!$Path) {
+            Write-Warning "The path is not in a git repository!"
+            return
+        }
+
+         try {
+            $repo = New-Object LibGit2Sharp.Repository $Path
+
+            if($Force) {
+                $repo.Branches
+            } else {
+                $repo.Branches | Where-Object { !$_.IsRemote }
+            }
            
         } finally {
             $repo.Dispose()
         }
     }
 }
+Set-Alias "Branch" "Get-Branch"
 
 # TODO: DOCUMENT ME
 function Show-Status {
