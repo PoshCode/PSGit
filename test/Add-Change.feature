@@ -1,9 +1,9 @@
+@wip
 Feature: Add changes to a repo
 	In order to track changes with Git, 
 	changes need to be added to the staging area a.k.a. the index
 	That's what Add-Change does.
 
-@wip
 Scenario: Add-Change should have similar parameters to git add
 	Given we have a command Add-Change
 	Then it should have parameters:

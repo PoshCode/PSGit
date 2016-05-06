@@ -1,9 +1,9 @@
-﻿Feature: Commit staged changes to the Repository
+﻿@wip
+Feature: Commit staged changes to the Repository
 	As a PowerShell user
 	I want to save the changes I made in my repository
 	So that I can restore a previous state of my work whenever I need to
 
-@wip
 Scenario: Save-Change should have similar paramteres as git commit
 	Given we have a command Save-Change
 	Then it should have parameters:
