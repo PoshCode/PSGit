@@ -245,13 +245,40 @@ function Get-Info {
     }
 }
 
-# function Show-Status {
-#     [CmdletBinding()]
-#     param()
-#     Get-Info | Out-Default
-#     Get-Change | Out-Default
-# }
-# Set-Alias Status "Show-Status"
+function Show-Status {
+    [CmdletBinding()]
+    param()
+    $info = Get-Info
+    $changes = Get-Change
+
+    $Info | Out-Default
+
+    if($info.BehindBy) {
+        WriteMessage "Action" "  (use `git pull` to merge the remote branch into yours)"
+    }
+    $staged = $changes | where { $_.Staged }
+    $unstaged = $changes | where { !$_.Staged}
+    $added = $unstaged | where { $_.Change -eq "Added" }
+    $unstaged = $unstaged | where { $_.Change -ne "Added" }
+
+    if($staged) {
+        WriteMessage "Changes to be committed" "`n  (use ``git reset HEAD `${file}`` to unstage)" -ForegroundColor "Green"
+        # $fg, $Host.UI.RawUI.ForegroundColor = $Host.UI.RawUI.ForegroundColor, "Green"
+        $staged | Out-Default
+        # $Host.UI.RawUI.ForegroundColor = $fg
+    }
+
+    if($unstaged) {
+        WriteMessage "Changes not staged for commit" "`n  (use ``git add `${file}`` to update what will be committed)`n  (use ``git checkout -- `${file}`` to discard changes in the working directory)" -ForegroundColor "DarkYellow"
+        $unstaged | Out-Default
+    }
+
+    if($added) {
+        WriteMessage "Untracked Files" "`n  (use ``git add `${file}`` to include them in what will be committed)" -ForegroundColor "Red"
+        $added | Out-Default
+    }
+}
+Set-Alias "-Status" "Show-Status"
 
 # Export-ModuleMember -Function *-* -Alias *
 
