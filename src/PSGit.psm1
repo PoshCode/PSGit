@@ -221,6 +221,7 @@ function Get-Change {
     }
 }
 
+# TODO: DOCUMENT ME
 function Get-Info {
     [CmdletBinding()]
     param (
@@ -245,6 +246,7 @@ function Get-Info {
     }
 }
 
+# TODO: DOCUMENT ME
 function Show-Status {
     [CmdletBinding()]
     param()
@@ -278,7 +280,7 @@ function Show-Status {
         $added | Out-Default
     }
 }
-Set-Alias "-Status" "Show-Status"
+Set-Alias "Status" "Show-Status"
 
 # Export-ModuleMember -Function *-* -Alias *
 
@@ -296,6 +298,7 @@ Set-Alias "-Status" "Show-Status"
 # } -Force
 
 
+# TODO: DOCUMENT ME
 function New-Repository {
     [CmdletBinding()]
     param (
