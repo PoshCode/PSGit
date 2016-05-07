@@ -4,7 +4,7 @@
 RootModule = 'PSGit.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '2.0'
 
 # ID used to uniquely identify this module
 GUID = 'df52529c-a328-4ee1-b52c-839646292588'
@@ -96,7 +96,12 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'https://github.com/PoshCode/PSGit/blob/master/ReleaseNotes.md'
+        ReleaseNotes = '
+            Added Show-GitStatus, Get-GitBranch
+            Major change to Get-GitInfo (now returns the HEAD branch, rather than commit)
+            Ensure objects returned are PSGit objects rather than underlying LibGit2Sharp objects
+        '
+
 
     } # End of PSData hashtable
 
