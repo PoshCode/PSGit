@@ -7,7 +7,7 @@ param(
     # The default supports PS3:  "net40","net35","net20","net45"
     # To only support PS4, use:  "net45","net40","net35","net20"
     # To support PS2, you use:   "net35","net20"
-    [string[]]$TargetFramework = @("net40","net35","net20","net45"),
+    [string[]]$TargetFramework = @("net40","net35","net20","net45","windows\amd64"),
     [switch]$Monitor,
     [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER}
 )
@@ -25,9 +25,11 @@ $ReleasePath = Join-Path $Path $Version
 
 Write-Verbose "OUTPUT Release Path: $ReleasePath"
 if(Test-Path $ReleasePath) {
-Write-Verbose "       Clean up old build"
+    Write-Verbose "       Clean up old build"
     Write-Verbose "DELETE $ReleasePath\"
     Remove-Item $ReleasePath -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Verbose "DELETE $OutputPath\build.log"
+    Remove-Item $OutputPath\build.log -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 ## Find dependency Package Files
@@ -35,15 +37,15 @@ Write-Verbose "       Copying Packages"
 foreach($Package in ([xml](Get-Content (Join-Path $Path packages.config))).packages.package) {
     $folder = Join-Path $Path "packages\$($Package.id)*"
     # Check for each TargetFramework, in order of preference, fall back to using the lib folder
-    $targets = ($TargetFramework -replace '^','lib\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
+    $targets = ($TargetFramework -replace '^','lib*\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
     $PackageSource = Get-Item $targets -ErrorAction SilentlyContinue | Select -First 1 -Expand FullName
     if(!$PackageSource) {
         throw "Could not find a lib folder for $($Package.id) from package. You may need to run Setup.ps1"
     }
 
-    Write-Verbose "COPY   $PackageSource\"
-    $null = robocopy $PackageSource $ReleasePath\lib /MIR /NP /LOG:"$OutputPath\build.log" /R:2 /W:15
-    if($LASTEXITCODE -gt 1) {
+    Write-Host robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
+    $null = robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
+    if($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1 -and $LASTEXITCODE -ne 3) {
         throw "Failed to copy Package $($Package.id) (${LASTEXITCODE}), see build.log for details"
     }
 }

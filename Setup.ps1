@@ -23,7 +23,7 @@ if(Test-Path (Join-Path $Path packages.config)) {
     # E.g.: nuget restore -PackagesDirectory "$Path\packages" -PackageSaveMode nuspec
     foreach($Package in ([xml](gc .\packages.config)).packages.package) {
         Write-Verbose "Installing $($Package.id) v$($Package.version) from $($Package.Source)"
-        $install = Install-Package -Name $Package.id -RequiredVersion $Package.version -Source $Package.Source -Destination $Path\packages -PackageSave nuspec -Force -ErrorVariable failure
+        $install = Install-Package -Name $Package.id -RequiredVersion $Package.version -Source $Package.Source -Destination $Path\packages -Force -ErrorVariable failure
         if($failure) {
             throw "Failed to install $($package.id), see errors above."
         }
