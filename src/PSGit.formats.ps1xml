@@ -48,7 +48,7 @@
                 <TableRowEntry>
                     <TableColumnItems>
                         <TableColumnItem>
-                            <PropertyName>Name</PropertyName>
+                            <PropertyName>Branch</PropertyName>
                         </TableColumnItem>
                         <TableColumnItem>
                             <ScriptBlock>

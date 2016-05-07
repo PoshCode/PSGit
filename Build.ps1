@@ -43,7 +43,7 @@ foreach($Package in ([xml](Get-Content (Join-Path $Path packages.config))).packa
         throw "Could not find a lib folder for $($Package.id) from package. You may need to run Setup.ps1"
     }
 
-    Write-Host robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
+    Write-Verbose "robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:'$OutputPath\build.log' /R:2 /W:15"
     $null = robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
     if($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1 -and $LASTEXITCODE -ne 3) {
         throw "Failed to copy Package $($Package.id) (${LASTEXITCODE}), see build.log for details"

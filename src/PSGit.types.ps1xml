@@ -19,6 +19,18 @@
                     $this.TrackingDetails.Behind
                 </GetScriptBlock>
             </ScriptProperty>
+            <ScriptProperty>
+                <Name>IsHead</Name>
+                <GetScriptBlock>
+                    $this.IsCurrentRepositoryHead
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>CommonAncestor</Name>
+                <GetScriptBlock>
+                    $this.TrackingDetails.CommonAncestor.Sha
+                </GetScriptBlock>
+            </ScriptProperty>            
         </Members>
     </Type>
 </Types>
