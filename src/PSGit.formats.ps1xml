@@ -77,5 +77,50 @@
             </TableRowEntries>
         </TableControl>
     </View>
+    <View>
+        <Name>Git.Change</Name>
+        <ViewSelectedBy>
+            <TypeName>LibGit2Sharp.Branch</TypeName>
+            <TypeName>PSGit.FileStatus</TypeName>
+        </ViewSelectedBy>
+        <!-- <GroupBy>
+            <PropertyName>Result</PropertyName>
+            <Label>Result</Label>
+        </GroupBy> -->
+        <TableControl>
+            <TableHeaders>
+                <TableColumnHeader>
+                    <Label>Path</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Staged</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>Change</Label>
+                </TableColumnHeader>
+                <TableColumnHeader>
+                    <Label>OldPath</Label>
+                </TableColumnHeader>
+            </TableHeaders>
+            <TableRowEntries>
+                <TableRowEntry>
+                    <TableColumnItems>
+                        <TableColumnItem>
+                            <PropertyName>Path</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>Staged</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>Change</PropertyName>
+                        </TableColumnItem>
+                        <TableColumnItem>
+                            <PropertyName>OldPath</PropertyName>
+                        </TableColumnItem>
+                    </TableColumnItems>
+                </TableRowEntry>
+            </TableRowEntries>
+        </TableControl>
+    </View>    
 </ViewDefinitions>
 </Configuration>
