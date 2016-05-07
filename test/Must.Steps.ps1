@@ -258,7 +258,7 @@ begin
                 }
             } 
             end  {
-                $TestResult = if($BeNullOrEmpty -and $TestResults.Count -eq 0) {
+                $TestResult = if($BeNullOrEmpty -and 0 -eq $TestResults.Count) {
                     Write-Verbose "EMPTY!"
                     $True
                 } elseif($All) {
@@ -286,18 +286,18 @@ begin
                     if(!$BeNullOrEmpty) {
                         $message += "'$($Value -join "','")'"
                     }
-                    $message += if($FailedValues -eq $null) {
+                    $message += if($null -eq $FailedValues) {
                                     '-- Actual: $null'
-                                } elseif($FailedValues.Count -eq 0) {
+                                } elseif(0 -eq $FailedValues.Count) {
                                     '-- Actual: {}'
-                                } elseif($FailedValues.Count -gt 1) { 
-                                    "-- Actual: {" + ( $FailedValues  -join ", ") + "}" 
-                                } elseif($FailedValues[0] -eq $null) {
+                                } elseif(1 -le $FailedValues.Count) {
+                                    "-- Actual: {" + ( $FailedValues  -join ", ") + "}"
+                                } elseif($null -eq $FailedValues[0]) {
                                     '-- Actual: $null'
-                                } elseif($FailedValues[0].ToString() -eq $FailedValues[0].GetType().FullName ) { 
-                                    "-- Actual: '" + ( $FailedValues | Out-String ) + "'" 
+                                } elseif($FailedValues[0].ToString() -eq $FailedValues[0].GetType().FullName ) {
+                                    "-- Actual: '" + ( $FailedValues | Out-String ) + "'"
                                 } else {
-                                    "-- Actual: '" + $FailedValues[0] + "'" 
+                                    "-- Actual: '" + $FailedValues[0] + "'"
                                 }
 
                     $exception = New-Object AggregateException ($message -join " ")
@@ -316,12 +316,12 @@ begin
             $InputObject | ft | out-string | % Trim | Write-Verbose
             $scriptCmd = {& $ForEachObjectCommand {
                                 [PSCustomObject]@{ 
-                                    Result = if($InputObject -eq $null){
+                                    Result = if($null -eq $InputObject){
                                                 Write-Verbose "NULL Object, no $Property to look at"
                                                 $false
                                              } elseif($InputObject.$Property -is [System.Collections.IList]) {
                                                 Write-Verbose "List $Property"
-                                                ($InputObject.$Property).Count -eq 0 
+                                                0 -eq ($InputObject.$Property).Count
                                              } elseif($InputObject.$Property -is [string] ) {
                                                 Write-Verbose "String $Property"
                                                 [string]::IsNullOrEmpty($InputObject.$Property)
@@ -331,7 +331,7 @@ begin
                                                 Write-Verbose "Is NULL? PROPERTY: $Property"
                                                 # Write-Debug ($InputObject."$Property".PSTypeNames -join "`n")
                                                  
-                                                $InputObject."$Property" -eq $null
+                                                $null -eq $InputObject."$Property"
                                                 Write-Verbose "Is NULL? PROPERTY: $Property"
                                              }  
                                     Value = $InputObject
@@ -340,9 +340,11 @@ begin
                          }
         } else {
 
-            $scriptCmd = {& $ForEachObjectCommand { 
+            $scriptCmd = {& $ForEachObjectCommand {
+                                Write-Verbose "Input Object is a $($InputObject.GetType().FullName)"
+                                Write-Verbose "Parameters: `n$($Parameters | Out-String)"
                                 [PSCustomObject]@{ 
-                                    Result = (($InputObject | Where-Object @Parameters) -ne $null)
+                                    Result = ($null -ne (Where-Object -Input $InputObject @Parameters))
                                     Value = $InputObject
                                 }
                             } | Throw-Failure -Operator $PSCmdlet.ParameterSetName -Any:$Any -All:$All -Not:$Not -BeNullOrEmpty:$BeNullOrEmpty

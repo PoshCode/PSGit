@@ -84,6 +84,28 @@ Describe "Must Equal" -Tag "Acceptance" {
         "Hello","Goodbye" | Must -Not -All -Equal "Hello"
         { "hello","Hello","HELLO" | Must -Not -All -Equal "Hello" } | Should Throw
     }
+
+    It "works for properties" {
+        $obj = New-Object PSObject -Property @{ Name = "Joel"; Id = 42 }
+        $obj | Must Name -eq "Joel"
+        { $obj | Must Name -Not -Equal "Joel" } | Should Throw
+
+        $obj | Must Id -Equal 42
+        $obj | Must Id -Equal "42"
+        { $obj | Must Id -Not -Equal 42 } | Should Throw
+
+        Must -Input $obj Name -eq "Joel"
+        { Must -Input $obj Name -not -eq "Joel" } | Should Throw
+
+        Must -Input $obj Id -eq 42
+        { Must -Input $obj Id -not -eq 42 } | Should Throw
+    }
+
+    # bug
+    It "works for properties of arrays" {
+        $obj = @( 1, 2, 3 )
+        Must -Input $obj Count -eq 3
+    }
 }
 
 # This is the part I had the most trouble with, logic-wise

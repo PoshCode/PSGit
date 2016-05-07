@@ -171,3 +171,22 @@ Feature: Get a list of file changes
             | Staged | Change | Path        |
             | True   | Added  | .gitmodules |
             | False  | Added  | FileOne.ps1 |
+
+    Scenario: Show-GitStatus calls both Get-GitInfo and Get-GitChange
+        Given we have initialized a repository with
+            | FileAction | Name           | Value     |
+            | Created    | FileOne.ps1    |           |
+            | Created    | FileTwo.ps1    |           |
+            | Created    | FileThree.ps1  |           |
+            | Added      | *              |           |
+            | Commited   | Initial Commit |           |
+            | Renamed    | FileOne.ps1    | File1.ps1 |
+            | Renamed    | FileThree.ps1  | File3.ps1 |
+            | Added      | *              |           |
+            | Created    | File4.ps1      |           |
+            | Modified   | File3.ps1      |           |
+            | Renamed    | FileTwo.ps1    | File2.ps1 |
+        And we expect Get-Info and Get-Change to be called
+        When Show-GitStatus is called
+        Then Get-Info is logged exactly 1 time
+        And Get-Change is logged exactly 1 time

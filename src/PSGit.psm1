@@ -277,7 +277,11 @@ function Get-Branch {
             $repo = New-Object LibGit2Sharp.Repository $Path
 
             $(
-                if($Force) {
+                # In the initialized state, there are no "Branches"
+                if([Linq.Enumerable]::Count($repo.Branches) -eq 0) {
+                    # But really, there is the master!
+                    $repo.Head
+                } elseif($Force) {
                     $repo.Branches
                 } else {
                     $repo.Branches | Where-Object { !$_.IsRemote }

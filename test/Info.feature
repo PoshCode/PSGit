@@ -3,7 +3,6 @@ Feature: Get repository status
     And know if what branch we're on, and whether changes have been made upstream
     We need a Get-Info command which returns information about the repository and its remotes
 
-
     Scenario: There's no Repository
         Given we are NOT in a repository
         When Get-GitInfo is called

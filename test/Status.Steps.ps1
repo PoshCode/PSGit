@@ -33,68 +33,7 @@ Given "we are in a git repository" {
     New-GitRepository
 }
 
-Given "we have initialized a repository(?: with)?" {
-    param($table)
-
-    # TODO: replace with PSGit native commands
-    git init
-
-    if($table) {
-        foreach($change in $table) {
-            switch($change.FileAction) {
-                "Created" {
-                    Set-Content $change.Name (Get-Date)
-                }
-                "Added" {
-                    # TODO: replace with PSGit native commands
-                    git add --all $pathspec
-                }
-                "Ignore" {
-                    # TODO: replace with PSGit native commands
-                    Add-Content .gitignore $change.Name
-                    git add .\.gitignore
-                    git commit -m "Ignore $($change.Name)"
-                }
-                "Modified" {
-                    Add-Content $change.Name (Get-Date)
-                }
-                "Commited" {
-                    # TODO: replace with PSGit native commands
-                    git commit -m "$($change.Name)"
-                }
-                "Removed" {
-                    Remove-Item $change.Name
-                }
-                "Renamed" {
-                    Rename-Item $change.Name $change.Value
-                }
-            }
-        }
-    }
-}
-
-
-Given "we have cloned a repository(?: and)?" {
-    param($table)
-
-    mkdir source
-    pushd .\source
-    # TODO: replace with PSGit native commands
-    git init
-    Set-Content SourceOne.ps1   (Get-Date)
-    Set-Content SourceTwo.ps1   (Get-Date)
-    git add Source*
-    git commit -m "Initial Commit"
-    popd
-
-    &{[CmdletBinding()]param() git clone --bare .\source } 2>..\git.log
-
-    mkdir copy
-    cd .\copy
-
-    # git clone outputs information to stderr for no reason
-    &{[CmdletBinding()]param() git clone ..\source.git . } 2>..\git.log
-
+function ProcessGitActions($table) {
     if($table) {
         foreach($change in $table) {
             switch($change.FileAction) {
@@ -129,7 +68,14 @@ Given "we have cloned a repository(?: and)?" {
 
                         git push
 
-                    } 2>..\git.log
+                    } 2>>..\git.log
+                }
+                "Branched" {
+                    &{[CmdletBinding()]param() 
+
+                        git checkout -b $change.Name 
+                
+                    } 2>>..\git.log
                 }
                 "Reset" {
                     git reset --hard $change.Name
@@ -139,6 +85,106 @@ Given "we have cloned a repository(?: and)?" {
     }
 }
 
+Given "we have initialized a repository(?: with)?" {
+    param($table)
+
+    # TODO: replace with PSGit native commands
+    git init
+
+    ProcessGitActions $table
+}
+
+Given "we have cloned a repository(?: and)?" {
+    param($table)
+
+    mkdir source
+    pushd .\source
+    # TODO: replace with PSGit native commands
+    git init
+    Set-Content SourceOne.ps1   (Get-Date)
+    Set-Content SourceTwo.ps1   (Get-Date)
+    git add Source*
+    git commit -m "Initial Commit"
+    popd
+
+    &{[CmdletBinding()]param() git clone --bare .\source } 2>..\git.log
+
+    mkdir copy
+    cd .\copy
+
+    # git clone outputs information to stderr for no reason
+    &{[CmdletBinding()]param() git clone ..\source.git . } 2>..\git.log
+
+    ProcessGitActions $table
+}
+
+Given "we have cloned a complex repository(?: and)?" {
+    param($table)
+
+    &{
+        mkdir source
+        pushd .\source
+        # TODO: replace with PSGit native commands
+        git init
+
+        # Add some files
+        Set-Content SourceOne.ps1   (Get-Date)
+        Set-Content SourceTwo.ps1   (Get-Date)
+        git add Source*
+        git commit -m "Initial Commit"
+
+        # Add some more files
+        Set-Content SourceThree.ps1   (Get-Date)
+        Set-Content SourceFour.ps1   (Get-Date)
+        git add Source*
+        git commit -m "Second Commit"
+        git tag -a v1.0 -m "All Files Present"
+
+        # Add some more files
+        Add-Content SourceOne.ps1   (Get-Date)
+        Add-Content SourceFour.ps1   (Get-Date)
+        git commit -a -m "Third Commit"
+
+        # Branch
+        git checkout -b dev
+        Add-Content SourceOne.ps1   (Get-Date)
+        Add-Content SourceTwo.ps1   (Get-Date)
+        git commit -a -m "Rewrite One and Two"
+
+        # Branch From Dev
+        git checkout -b feature1
+        Add-Content SourceOne.ps1   (Get-Date)
+        Add-Content SourceFour.ps1   (Get-Date)
+        git commit -a -m "Alter One and Four"
+
+        # Rebranch From Dev
+        git checkout dev
+        git checkout -b feature2
+        Add-Content SourceThree.ps1   (Get-Date)
+        git commit -a -m "Alter Three"
+
+        Add-Content SourceThree.ps1   (Get-Date)
+        git commit -a -m "Alter Three Again"
+
+        # Switch back to dev and merge feature2
+        git checkout dev
+        git merge feature2
+
+        popd
+
+        # create a "bare" repo, suitable for pushing to
+        git clone --bare .\source 
+
+        mkdir copy
+        cd .\copy
+
+        # git clone outputs information to stderr for no reason
+        git clone ..\source.git .
+
+    } 2>>.\git.log
+
+    ProcessGitActions $table
+}
 
 Given "we have added a submodule `"(\w+)`"" {
     param($module)
@@ -174,6 +220,16 @@ When "Get-GitInfo (.*)? ?is called" {
     }
 }
 
+When "Get-GitBranch (?:(?<Force>-Force )|(?<pathspec>.*) )*is called" {
+    param($pathspec, $Force=$null)
+    $Force = $null -ne $Force
+    if($pathspec) {
+        $script:result = Get-GitBranch $pathspec -Force:$Force -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+    } else {
+        $script:result = Get-GitBranch -Force:$Force -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+    }
+}
+
 When "New-GitRepository (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
@@ -181,7 +237,6 @@ When "New-GitRepository (.*)? ?is called" {
     } else {
         New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     }
-
 }
 
 When "Add-GitItem (.*)? is called" {
@@ -189,6 +244,17 @@ When "Add-GitItem (.*)? is called" {
     # TODO: replace with PSGit native commands
     git add --all $pathspec
 }
+
+When "Show-GitStatus (.*)? ?is called" {
+    param($pathspec)
+    if($pathspec) {
+        Show-GitStatus $pathspec -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+    } else {
+        Show-GitStatus -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+    }
+
+}
+
 
 # This regex allows the step to be written as any of:
 # the output should be a warning: whatever
@@ -229,13 +295,61 @@ Then "the output should have" {
     Write-Verbose ($Table | Out-String)
 
     foreach($Property in $Table) {
-        if($Property.Value -ne '$null') {
-            $script:result | Must -Any $Property.Property -Eq $Property.Value
-        } else {
-            $script:result | Must -Any $Property.Property -Eq $null
+        switch($Property.Value) {
+            '$True' {
+                $script:result | Must -Any $Property.Property -Eq $True
+            }
+            '$False' {
+                $script:result | Must -Any $Property.Property -Eq $False
+            }
+            '$null' {
+                $script:result | Must -Any $Property.Property -Eq $null
+            } 
+            default {
+                $script:result | Must -Any $Property.Property -Eq $Property.Value
+            }
         }
-
     }
+}
+
+Then "output (\d+) '(.*)' should (\w+) '(.*)'" {
+    param([int]$Index, $Property, $Comparator, $Pattern)
+    $index--
+
+    $Parameters = @{
+        $Comparator = $True
+        Value = $Pattern
+    }
+
+    $script:result[$index] | Must $Property @Parameters    
+}
+
+Then "output (\d+) should have" {
+    param([int]$Index, $Table)
+    Write-Verbose ($Table | Out-String)
+    $index--
+
+    foreach($Property in $Table) {
+        switch($Property.Value) {
+            '$True' {
+                $script:result[$index] | Must -Any $Property.Property -Eq $True
+            }
+            '$False' {
+                $script:result[$index] | Must -Any $Property.Property -Eq $False
+            }
+            '$null' {
+                $script:result[$index] | Must -Any $Property.Property -Eq $null
+            } 
+            default {
+                $script:result[$index] | Must -Any $Property.Property -Eq $Property.Value
+            }
+        }
+    }
+}
+
+Then "there should be (\d+) results" {
+    param([int]$Count)
+    Must -Input @($script:result) Count -eq $Count
 }
 
 Then "it should have parameters:" {
@@ -312,3 +426,24 @@ Then 'the content of ["''](?<file>.*)["''] should be ["''](?<content>.*)["'']' {
     }
     throw "File $file not found"
 }
+
+Given "we expect Get-Info and Get-Change to be called" {
+    Mock -Module PSGit Get-Info { } -Verifiable
+    Mock -Module PSGit Get-Change { } -Verifiable
+}
+
+
+# this step lets us verify the number of calls to those three mocks
+When "(?<command>.*) is logged(?: (?<exactly>exactly) (?<count>\d+) times?)?" {
+    param($command, $count, $exactly)
+    $param = @{Command = $command}
+    if($count) {
+        $param.Exactly = $Exactly -eq "Exactly"
+        $param.Times = $count
+    }
+    Assert-MockCalled -Module PSGit @param
+}
+
+
+
+Then 'Wait-Debugger' { Wait-Debugger }

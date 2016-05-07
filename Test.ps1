@@ -55,9 +55,9 @@ Set-Content "$Path\Test\.Do.Not.COMMIT.This.Steps.ps1" "Import-Module $ReleasePa
 Write-Host $(prompt) -NoNewLine
 Write-Host Import-Module $ReleasePath\${ModuleName}.psd1 -Force
 Write-Host $(prompt) -NoNewLine
-Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.ps[m1]*" -PassThru @Options
+Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
 
-$TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.ps[m1]*" -PassThru @Options
+$TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
 
 Remove-Module $ModuleName -ErrorAction SilentlyContinue
 Remove-Item "$Path\Test\.Do.Not.COMMIT.This.Steps.ps1"
