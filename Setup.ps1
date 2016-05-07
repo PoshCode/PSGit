@@ -1,25 +1,33 @@
 #Requires -Version "4.0" -Module PackageManagement
-#NOTE: if you don't have PackageManagement, you can use nuget instead:
+#.Notes
+#      if you don't have PackageManagement, you can use nuget instead:
 #      nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
+[CmdletBinding()]
+param(
+    [Alias("PSPath")]
+    [string]$Path = $PSScriptRoot,
+    [string]$ModuleName = $(Split-Path $Path -Leaf)
+)
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+Write-Host "SETUP $ModuleName in $Path"
 
-if(!(Test-Path Variable:global:LibGit2Sharp) -or !(Test-Path $global:LibGit2Sharp)) {
-    $global:LibGit2Sharp = Resolve-Path $PSScriptRoot\packages\libgit2sharp\lib\*\LibGit2Sharp.dll -ErrorAction SilentlyContinue
-}
-
-if(!$global:LibGit2Sharp) {
+if(Test-Path (Join-Path $Path packages.config)) {
     if(!($Name = Get-PackageSource | ? Location -eq 'https://www.nuget.org/api/v2' | % Name)) {
-       $Name = Register-PackageSource NuGet -Location 'https://www.nuget.org/api/v2' -ForceBootstrap -ProviderName NuGet | % Name
+        Write-Warning "Adding NuGet package source"
+        $Name = Register-PackageSource NuGet -Location 'https://www.nuget.org/api/v2' -ForceBootstrap -ProviderName NuGet | % Name
     }
-    $null = mkdir $PSScriptRoot\packages\ -Force
-    $package = Install-Package libgit2sharp -Source NuGet -Destination $PSScriptRoot\packages -ExcludeVersion -PackageSave nuspec -Force
+    $null = mkdir $Path\packages\ -Force
 
-    if(!$package) {
-        throw "Failed to install libgit2sharp assembly"
+    # This recreates nuget's package restore, but hypothetically, with support for any provider
+    # E.g.: nuget restore -PackagesDirectory "$Path\packages" -PackageSaveMode nuspec
+    foreach($Package in ([xml](gc .\packages.config)).packages.package) {
+        Write-Verbose "Installing $($Package.id) v$($Package.version) from $($Package.Source)"
+        $install = Install-Package -Name $Package.id -RequiredVersion $Package.version -Source $Package.Source -Destination $Path\packages -Force -ErrorVariable failure
+        if($failure) {
+            throw "Failed to install $($package.id), see errors above."
+        }
     }
-
-    $global:LibGit2Sharp = Resolve-Path $PSScriptRoot\packages\libgit2sharp\lib\*\LibGit2Sharp.dll -ErrorAction SilentlyContinue
 }
 
-Get-ChildItem $PSScriptRoot\packages\libgit2sharp\lib\*\*
+git submodule update --init --recursive

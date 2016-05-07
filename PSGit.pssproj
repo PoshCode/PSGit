@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>6CAFC0C6-A428-4d30-A9F9-700E829FEA51</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MyApplication</RootNamespace>
+    <AssemblyName>MyApplication</AssemblyName>
+    <Name>PSGit</Name>
+    <Author>Test</Author>
+    <CompanyName />
+    <Copyright />
+    <Description />
+    <Guid>e7c5d328-f4c5-472f-969f-a32331cdc7c1</Guid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="src\" />
+    <Folder Include="test\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="appveyor.yml" />
+    <Compile Include="Build.ps1" />
+    <Compile Include="CONTRIBUTING.md" />
+    <Compile Include="Get-Version.ps1" />
+    <Compile Include="Package.ps1" />
+    <Compile Include="packages.config" />
+    <Compile Include="README.md" />
+    <Compile Include="Setup.ps1" />
+    <Compile Include="src\PSGit.psd1" />
+    <Compile Include="src\PSGit.psm1" />
+    <Compile Include="Test.ps1" />
+    <Compile Include="test\Changes.feature" />
+    <Compile Include="test\Info.feature" />
+    <Compile Include="test\Must.Steps.ps1" />
+    <Compile Include="test\Must.Tests.ps1" />
+    <Compile Include="test\NewRepository.feature" />
+    <Compile Include="test\Save-Change.feature" />
+    <Compile Include="test\Send-CodeCov.ps1" />
+    <Compile Include="test\Status.Steps.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="test\Add-Change.feature" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="Build" />
+</Project>

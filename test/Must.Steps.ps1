@@ -17,10 +17,6 @@ function Must {
         [Switch]
         $Any,
 
-        # [Parameter(ParameterSetName='ScriptBlockSet', Mandatory=$true, Position=0)]
-        # [scriptblock]
-        # ${FilterScript},
-
         [Parameter(Position=0)]
         [AllowEmptyString()][AllowNull()]
         [System.Object]
@@ -32,34 +28,27 @@ function Must {
         ${Value},
 
         [Parameter(ParameterSetName='equal', Mandatory=$true)]
-        [Alias('IEQ')]
-        [Alias('BeEqualTo')]
-        [Alias('Equal')]
+        [Alias('IEQ','BeEqualTo','Equal')]
         [switch]
-        ${EQ},
+        ${EQ} ,
 
         [Parameter(ParameterSetName='equal (case-sensitive)', Mandatory=$true)]
-        [Alias('BeExactlyEqualTo')]
-        [Alias('EqualExactly')]
+        [Alias('BeExactlyEqualTo','EqualExactly')]
         [switch]
         ${CEQ},
 
         [Parameter(ParameterSetName='not equal', Mandatory=$true)]
-        [Alias('INE')]
-        [Alias('NotBeEqualTo')]
-        [Alias('NotEqual')]
+        [Alias('INE','NotBeEqualTo','NotEqual')]
         [switch]
         ${NE},
 
         [Parameter(ParameterSetName='not equal (case-sensitive)', Mandatory=$true)]
-        [Alias('NotBeExactlyEqualTo')]
-        [Alias('NotExactlyEqual')]
+        [Alias('NotBeExactlyEqualTo','NotExactlyEqual')]
         [switch]
         ${CNE},
 
         [Parameter(ParameterSetName='be greater than', Mandatory=$true)]
-        [Alias('IGT')]
-        [Alias('BeGreaterThan')]
+        [Alias('IGT','BeGreaterThan')]
         [switch]
         ${GT},
 
@@ -69,8 +58,7 @@ function Must {
         ${CGT},
 
         [Parameter(ParameterSetName='be less than', Mandatory=$true)]
-        [Alias('ILT')]
-        [Alias('BeLessThan')]
+        [Alias('ILT','BeLessThan')]
         [switch]
         ${LT},
 
@@ -80,8 +68,7 @@ function Must {
         ${CLT},
 
         [Parameter(ParameterSetName='not be less than', Mandatory=$true)]
-        [Alias('NotBeLessThan')]
-        [Alias('IGE')]
+        [Alias('NotBeLessThan','IGE')]
         [switch]
         ${GE},
 
@@ -91,8 +78,7 @@ function Must {
         ${CGE},
 
         [Parameter(ParameterSetName='not be greater than', Mandatory=$true)]
-        [Alias('ILE')]
-        [Alias('NotBeGreaterThan')]
+        [Alias('ILE','NotBeGreaterThan')]
         [switch]
         ${LE},
 
@@ -102,8 +88,7 @@ function Must {
         ${CLE},
 
         [Parameter(ParameterSetName='be like', Mandatory=$true)]
-        [Alias('ILike')]
-        [Alias('BeLike')]
+        [Alias('ILike','BeLike')]
         [switch]
         ${Like},
 
@@ -113,8 +98,7 @@ function Must {
         ${CLike},
 
         [Parameter(ParameterSetName='not be like', Mandatory=$true)]
-        [Alias('NotBeLike')]
-        [Alias('INotLike')]
+        [Alias('NotBeLike','INotLike')]
         [switch]
         ${NotLike},
 
@@ -149,8 +133,7 @@ function Must {
         ${Contains},
 
         [Parameter(ParameterSetName='contain (case-sensitive)', Mandatory=$true)]
-        [Alias('ContainsExactly')]
-        [Alias('ContainExactly')]
+        [Alias('ContainsExactly','ContainExactly')]
         [switch]
         ${CContains},
 
@@ -160,14 +143,12 @@ function Must {
         ${NotContains},
 
         [Parameter(ParameterSetName='not contain (case-sensitive)', Mandatory=$true)]
-        [Alias('NotContainsExactly')]
-        [Alias('NotContainExactly')]
+        [Alias('NotContainsExactly','NotContainExactly')]
         [switch]
         ${CNotContains},
 
         [Parameter(ParameterSetName='be in', Mandatory=$true)]
-        [Alias('IIn')]
-        [Alias('BeIn')]
+        [Alias('IIn','BeIn')]
         [switch]
         ${In},
 
@@ -177,8 +158,7 @@ function Must {
         ${CIn},
 
         [Parameter(ParameterSetName='not be in', Mandatory=$true)]
-        [Alias('INotIn')]
-        [Alias('NotBeIn')]
+        [Alias('INotIn','NotBeIn')]
         [switch]
         ${NotIn},
 
@@ -217,101 +197,161 @@ begin
         $null = $PSBoundParameters.Remove("All")
         $null = $PSBoundParameters.Remove("Any")
 
-        $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('ForEach-Object', [System.Management.Automation.CommandTypes]::Cmdlet)
-        $NullOrEmptyFilter = { if($_ -is [System.Collections.IList]) { $_.Count -eq 0 } elseif( $_ -is [string] ) { [string]::IsNullOrEmpty($_) } else { $_ -eq $null } }
-
+        $ForEachObjectCommand = $ExecutionContext.InvokeCommand.GetCommand('ForEach-Object', [System.Management.Automation.CommandTypes]::Cmdlet)
 
         if (!$PSBoundParameters.ContainsKey('Value'))
         {
             $NoProperty = $True
             if($PSBoundParameters.ContainsKey('BeNullOrEmpty')) {
-                $NullOrEmptyFilter = { if($_.Value -is [System.Collections.IList]) { $_.Value.Count -eq 0 } elseif( $_.Value -is [string] ) { [string]::IsNullOrEmpty($_.Value) } else { $_.Value -eq $null } }
+                $Property = "Value"
             } else {
                 $Value = $PSBoundParameters['Value'] = $PSBoundParameters['Property']
                 $Property = $PSBoundParameters['Property'] = "Value"
             }
 
-            if($PSBoundParameters.ContainsKey('InputObject'))
-            {
-                $InputObject = $PSBoundParameters['InputObject'] = New-Object PSObject -Property @{ "Value" = $InputObject }
-            }
+            # if($PSBoundParameters.ContainsKey('InputObject'))
+            # {
+            #     $InputObject = $PSBoundParameters['InputObject'] = @{ "Value" = $InputObject }
+            # }
         }
-        <#
-        if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 1 -EA 0).Value)) {
-            if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 2 -EA 0).Value)) {
-                if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 3 -EA 0).Value)) {
-                    if(!($Cmdlet = (Get-Variable PSCmdlet -Scope 4 -EA 0).Value)) {
-                        $Cmdlet = $PSCmdlet
-                    }
-                }
-            }
-        }
-        #>
+
         $Cmdlet = $PSCmdlet
-        $ThrowMessage = {
-            if(!$_) {
-                $message = @("TestObject", $Property, "must")
-                $message += if($Not) { "not" }
-                $message += if($All) { "all" }
-                $message += if($Any) { "any" }
-                $message += $PSCmdlet.ParameterSetName
-                $message += "'$($Value -join "','")'"
-                $message += if($NoProperty) { "-- Actual: '" + $InputObject + "'" } else { "-- Actual: '" + $InputObject.$Property + "'" }
+        function Throw-Failure {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+                [bool]$Result,
 
-                $exception = New-Object AggregateException ($message -join " ")
-                $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, "FailedMust", "LimitsExceeded", $message
-                $Cmdlet.ThrowTerminatingError($errorRecord)
+                [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
+                [AllowNull()]
+                [AllowEmptyString()]
+                [Alias("Value")]
+                $InputValue = $InputObject,
+
+                [Parameter()]
+                [String]$Operator = $Cmdlet.ParameterSetName,
+
+                [Switch]
+                $Not,
+
+                [Switch]
+                $All,
+
+                [Switch]
+                $Any,
+
+                [Switch]
+                $BeNullOrEmpty
+            )
+            begin {
+                $TestResults = @()
+                $FailedValues = @()
+                $PassedValues = @()
+            }
+            process {
+                Write-Verbose "Tested $($InputValue.$Property), Result: $Result "
+                $TestResults += $Result
+                if(!$Result) {
+                    $FailedValues += $InputValue.$Property
+                } else {
+                    $PassedValues += $InputValue.$Property                    
+                }
+            } 
+            end  {
+                $TestResult = if($BeNullOrEmpty -and 0 -eq $TestResults.Count) {
+                    Write-Verbose "EMPTY!"
+                    $True
+                } elseif($All) {
+                    $TestResults -NotContains $False
+                } elseif($Any) {
+                    $TestResults -Contains $True
+                } else {
+                    $TestResults -NotContains $False
+                }
+
+                Write-Verbose "Result: $(if($NOT){"NOT "})$TestResult"
+
+                if($Not) {
+                    $FailedValues, $PassedValues = $PassedValues, $FailedValues
+                    $TestResult = !$TestResult
+                }
+                Write-Verbose "Passed: {$( $PassedValues  -join ", ")} | Failed: {$( $FailedValues  -join ", ")} | Result: $TestResult"
+
+                if(!$TestResult) {
+                    $message = @("TestObject", $Property, "must")
+                    $message += if($Not) { "not" }
+                    $message += if($All) { "all" }
+                    $message += if($Any) { "any" }
+                    $message += $Operator
+                    if(!$BeNullOrEmpty) {
+                        $message += "'$($Value -join "','")'"
+                    }
+                    $message += if($null -eq $FailedValues) {
+                                    '-- Actual: $null'
+                                } elseif(0 -eq $FailedValues.Count) {
+                                    '-- Actual: {}'
+                                } elseif(1 -le $FailedValues.Count) {
+                                    "-- Actual: {" + ( $FailedValues  -join ", ") + "}"
+                                } elseif($null -eq $FailedValues[0]) {
+                                    '-- Actual: $null'
+                                } elseif($FailedValues[0].ToString() -eq $FailedValues[0].GetType().FullName ) {
+                                    "-- Actual: '" + ( $FailedValues | Out-String ) + "'"
+                                } else {
+                                    "-- Actual: '" + $FailedValues[0] + "'"
+                                }
+
+                    $exception = New-Object AggregateException ($message -join " ")
+                    $errorRecord = New-Object System.Management.Automation.ErrorRecord $exception, "FailedMust", "LimitsExceeded", $message
+                    $Cmdlet.ThrowTerminatingError($errorRecord)
+                }                
             }
         }
-
 
         $Parameters = @{} + $PSBoundParameters
-        if($Parameters.ContainsKey('BeNullOrEmpty')) {
-            $null = $Parameters.Remove("BeNullOrEmpty")
-            $Parameters.FilterScript = $NullOrEmptyFilter
+        $null = $Parameters.Remove("InputObject")
 
-            if($All) {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $False } else { ($_ | Where-Object @Parameters) -eq $null } } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -NotContains $False} | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $True } else { ($_ | Where-Object @Parameters) -ne $null } } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -NotContains $False} | ForEach-Object $ThrowMessage }
-                }
-            } elseif($Any) {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $False } else { ($_ | Where-Object @Parameters) -eq $null } } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -Contains $True} | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $True } else { ($_ | Where-Object @Parameters) -ne $null } } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -Contains $True} | ForEach-Object $ThrowMessage }
-                }
-            } else {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $False } else { ($_ | Where-Object @Parameters) -eq $null } } | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { if($_ -eq $null){ $True } else { ($_ | Where-Object @Parameters) -ne $null } } | ForEach-Object $ThrowMessage }
-                }
-            }
+        if($Parameters.ContainsKey('BeNullOrEmpty')) {
+            Write-Verbose "Testing $Property to See if it's null or empty"
+            Write-Verbose "InputObject $InputObject"
+            $InputObject | ft | out-string | % Trim | Write-Verbose
+            $scriptCmd = {& $ForEachObjectCommand {
+                                [PSCustomObject]@{ 
+                                    Result = if($null -eq $InputObject){
+                                                Write-Verbose "NULL Object, no $Property to look at"
+                                                $false
+                                             } elseif($InputObject.$Property -is [System.Collections.IList]) {
+                                                Write-Verbose "List $Property"
+                                                0 -eq ($InputObject.$Property).Count
+                                             } elseif($InputObject.$Property -is [string] ) {
+                                                Write-Verbose "String $Property"
+                                                [string]::IsNullOrEmpty($InputObject.$Property)
+                                             } else {
+                                                # Write-Verbose "Is NULL? OBJECT"
+                                                # Write-Debug ($InputObject.PSTypeNames -join "`n")
+                                                Write-Verbose "Is NULL? PROPERTY: $Property"
+                                                # Write-Debug ($InputObject."$Property".PSTypeNames -join "`n")
+                                                 
+                                                $null -eq $InputObject."$Property"
+                                                Write-Verbose "Is NULL? PROPERTY: $Property"
+                                             }  
+                                    Value = $InputObject
+                                } 
+                            } | Throw-Failure -Operator $PSCmdlet.ParameterSetName -Any:$Any -All:$All -Not:$Not -BeNullOrEmpty:$BeNullOrEmpty
+                         }
         } else {
 
-            if($All) {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -eq $null } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -NotContains $False} | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -ne $null } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -NotContains $False} | ForEach-Object $ThrowMessage }
-                }
-            } elseif($Any) {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -eq $null } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -Contains $True} | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -ne $null } | ForEach-Object {[Array]$Collected=@()} {$Collected += $_} {$Collected -Contains $True} | ForEach-Object $ThrowMessage }
-                }
-            } else {
-                if($Not) {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -eq $null } | ForEach-Object $ThrowMessage }
-                } else {
-                    $scriptCmd = {& $wrappedCmd { ($_ | Where-Object @Parameters) -ne $null } | ForEach-Object $ThrowMessage }
-                }
-            }
+            $scriptCmd = {& $ForEachObjectCommand {
+                                Write-Verbose "Input Object is a $($InputObject.GetType().FullName)"
+                                Write-Verbose "Parameters: `n$($Parameters | Out-String)"
+                                [PSCustomObject]@{ 
+                                    Result = ($null -ne (Where-Object -Input $InputObject @Parameters))
+                                    Value = $InputObject
+                                }
+                            } | Throw-Failure -Operator $PSCmdlet.ParameterSetName -Any:$Any -All:$All -Not:$Not -BeNullOrEmpty:$BeNullOrEmpty
+                         }
         }
 
+        $NeedPipelineInput = $PSCmdlet.MyInvocation.ExpectingInput
         $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
         $steppablePipeline.Begin($PSCmdlet)
     } catch {
@@ -322,54 +362,31 @@ begin
 process
 {
     try {
+        $NeedPipelineInput = $False
         if($NoProperty) {
-            $_ = @{ "Value" = $_ }
+            Write-Verbose "NoProperty. Packing InputObject"
+            $InputObject = @{ "Value" = $InputObject }
         }
-        $steppablePipeline.Process($_)
+        $steppablePipeline.Process($InputObject)
 
     } catch {
         throw
     }
 }
-
 end
 {
     try {
+        if($NeedPipelineInput -and !${BeNullOrEmpty} -and !$Not) {
+            Write-Verbose "Was ExpectingInput and got none"
+            ForEach-Object $ThrowMessage -Input $Null
+        }
         $steppablePipeline.End()
     } catch {
         throw
     }
 }
 <#
-
 .ForwardHelpTargetName Where-Object
 .ForwardHelpCategory Cmdlet
-
 #>
 }
-
-
-# function Must {
-#    [CmdletBinding(DefaultParameterSetName = 'Be')]
-#    param(
-
-
-#       $lt,
-#       $le,
-#       $gt,
-#       $ge,
-#       $eq,
-#       $ne
-#    )
-
-#    $all = @(
-#       if($lt) { $Version -lt $lt }
-#       if($gt) { $Version -gt $gt }
-#       if($le) { $Version -le $le }
-#       if($ge) { $Version -ge $ge }
-#       if($eq) { $Version -eq $eq }
-#       if($ne) { $Version -ne $ne }
-#    )
-
-#    $all -notcontains $false
-# }

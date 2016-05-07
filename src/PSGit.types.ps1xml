@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Types>
+    <Type>
+        <Name>LibGit2Sharp.Branch</Name>
+        <Members>
+            <AliasProperty>
+                <Name>Branch</Name>
+                <ReferencedMemberName>Name</ReferencedMemberName>
+            </AliasProperty>
+            <ScriptProperty>
+                <Name>Ahead</Name>
+                <GetScriptBlock>
+                    $this.TrackingDetails.Ahead
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>Behind</Name>
+                <GetScriptBlock>
+                    $this.TrackingDetails.Behind
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>IsHead</Name>
+                <GetScriptBlock>
+                    $this.IsCurrentRepositoryHead
+                </GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>CommonAncestor</Name>
+                <GetScriptBlock>
+                    $this.TrackingDetails.CommonAncestor.Sha
+                </GetScriptBlock>
+            </ScriptProperty>            
+        </Members>
+    </Type>
+</Types>
