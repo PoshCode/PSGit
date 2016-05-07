@@ -163,23 +163,23 @@ When "Get-GitChange (.*)? ?is called" {
         $Options.HideSubmodules = $true
     }   
 
-    $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options
+    $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 }
 When "Get-GitInfo (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
-        $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+        $script:result = Get-GitInfo $pathspec -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     } else {
-        $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings
+        $script:result = Get-GitInfo -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     }
 }
 
 When "New-GitRepository (.*)? ?is called" {
     param($pathspec)
     if($pathspec) {
-        New-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository $pathspec -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     } else {
-        New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings
+        New-GitRepository -ErrorVariable script:errors -WarningVariable script:warnings -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     }
 
 }
