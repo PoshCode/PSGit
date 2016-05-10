@@ -25,12 +25,19 @@
                     $this.IsCurrentRepositoryHead
                 </GetScriptBlock>
             </ScriptProperty>
-            <ScriptProperty>
-                <Name>CommonAncestor</Name>
-                <GetScriptBlock>
-                    $this.TrackingDetails.CommonAncestor.Sha
-                </GetScriptBlock>
-            </ScriptProperty>            
+        </Members>
+    </Type>
+    <Type>
+        <Name>PSGit.Branch</Name>
+        <Members>
+            <AliasProperty>
+                <Name>AheadBy</Name>
+                <ReferencedMemberName>Ahead</ReferencedMemberName>
+            </AliasProperty>
+            <AliasProperty>
+                <Name>BehindBy</Name>
+                <ReferencedMemberName>Behind</ReferencedMemberName>
+            </AliasProperty>
         </Members>
     </Type>
 </Types>

@@ -7,7 +7,7 @@ param(
     # The default supports PS3:  "net40","net35","net20","net45"
     # To only support PS4, use:  "net45","net40","net35","net20"
     # To support PS2, you use:   "net35","net20"
-    [string[]]$TargetFramework = @("net40","net35","net20","net45","windows\amd64"),
+    [string[]]$TargetFramework = @("net40","net35","net20","net45"),
     [switch]$Monitor,
     [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER}
 )
@@ -35,20 +35,33 @@ if(Test-Path $ReleasePath) {
 ## Find dependency Package Files
 Write-Verbose "       Copying Packages"
 foreach($Package in ([xml](Get-Content (Join-Path $Path packages.config))).packages.package) {
+    $LibPath = "$ReleasePath\lib"
     $folder = Join-Path $Path "packages\$($Package.id)*"
-    # Check for each TargetFramework, in order of preference, fall back to using the lib folder
-    $targets = ($TargetFramework -replace '^','lib*\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
+
+    # The git NativeBinaries are special -- we need to copy all the "windows" binaries:
+    if($Package.id -eq "LibGit2Sharp.NativeBinaries") {
+        $targets = Join-Path $folder 'libgit2\windows'
+        $LibPath = Join-Path $LibPath "NativeBinaries"
+    } else {
+        # Check for each TargetFramework, in order of preference, fall back to using the lib folder
+        $targets = ($TargetFramework -replace '^','lib\') + 'lib' | ForEach-Object { Join-Path $folder $_ }
+    }
+
     $PackageSource = Get-Item $targets -ErrorAction SilentlyContinue | Select -First 1 -Expand FullName
     if(!$PackageSource) {
         throw "Could not find a lib folder for $($Package.id) from package. You may need to run Setup.ps1"
     }
 
-    Write-Verbose "robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:'$OutputPath\build.log' /R:2 /W:15"
-    $null = robocopy $PackageSource $ReleasePath\lib /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
+    Write-Verbose "robocopy $PackageSource $LibPath /E /NP /LOG+:'$OutputPath\build.log' /R:2 /W:15"
+    $null = robocopy $PackageSource $LibPath /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
     if($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1 -and $LASTEXITCODE -ne 3) {
         throw "Failed to copy Package $($Package.id) (${LASTEXITCODE}), see build.log for details"
     }
 }
+
+
+
+
 
 ## Copy PowerShell source Files
 Write-Verbose "       Copying Module Source"

@@ -71,11 +71,7 @@ function Get-RootFolder {
     )
     end {
         # Git Repositories are File System Based, and don't care aabout PSDrives
-        $Path = Convert-Path $Root
-        while($Path -and !(Test-Path $Path\.git -Type Container)) {
-            $Path = Split-Path $Path
-        }
-        return $Path
+        [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
     }
 }
 
@@ -109,7 +105,7 @@ function Get-Change {
         $ShowIgnored
     )
     end {
-        $Path = Get-RootFolder $Root
+        $Path = [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
         if(!$Path) {
             Write-Warning "The path is not in a git repository!"
             return
@@ -119,6 +115,8 @@ function Get-Change {
 
         try {
             $repo = New-Object LibGit2Sharp.Repository $Path
+            $Path = $repo.Info.WorkingDirectory
+
             $Options = New-Object LibGit2Sharp.StatusOptions
             $Options.Show = $PSCmdlet.ParameterSetName
             # Don't touch PathSpec unless you're serious, it breaks the output
@@ -204,6 +202,7 @@ function Get-Change {
                 Path = $file.FilePath + $(if(Test-Path (Join-Path $Path $File.FilePath) -Type Container){ "\" })
             }
         }
+        # Optional output
         if(!$HideUntracked) {
             foreach($file in $status.Untracked) {
                 New-Object PSCustomObject -Property @{
@@ -214,7 +213,6 @@ function Get-Change {
                 }
             }
         }
-        # Optional output
         if($ShowIgnored) {
             foreach($file in $status.Ignored) {
                 New-Object PSCustomObject -Property @{
@@ -235,7 +233,8 @@ $BranchProperties =
     @{ Name="Remote"; expr = { $_.Remote.Url } }, 
     @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }}, 
     @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy}}, 
-    @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }}
+    @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }},
+    @{ Name="GitDir"; Expr= {$_.Repository.Info.WorkingDirectory}}
 
 # TODO: DOCUMENT ME
 function Get-Info {
@@ -246,13 +245,13 @@ function Get-Info {
         [String]$Root = $Pwd
     )
     end {
-        $Path = Get-RootFolder $Root
+        $Path = [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
         if(!$Path) {
             Write-Warning "The path is not in a git repository!"
             return
         }
 
-         try {
+        try {
             $repo = New-Object LibGit2Sharp.Repository $Path
 
             # We have to transform the object to keep the data around after .Dispose()
@@ -260,7 +259,9 @@ function Get-Info {
                 Select-Object $BranchProperties |
                 ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
         } finally {
-            $repo.Dispose()
+            if($null -ne $repo) {
+                $repo.Dispose()
+            }
         }
     }
 }
@@ -276,7 +277,7 @@ function Get-Branch {
         [Switch]$Force
     )
     end {
-        $Path = Get-RootFolder $Root
+        $Path = [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
         if(!$Path) {
             Write-Warning "The path is not in a git repository!"
             return
@@ -284,7 +285,6 @@ function Get-Branch {
 
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
-
             $(
                 # In the initialized state, there are no "Branches"
                 if([Linq.Enumerable]::Count($repo.Branches) -eq 0) {
@@ -300,20 +300,40 @@ function Get-Branch {
                 ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
            
         } finally {
-            $repo.Dispose()
+            if($null -ne $repo) {
+                $repo.Dispose()
+            }
         }
     }
 }
 Set-Alias "Branch" "Get-Branch"
 
+function Get-Status {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    Get-Info -Root $Root | 
+        Add-Member -Type NoteProperty -Name Changes -Value (
+            Get-Change -Root $Root
+        ) -Passthru
+
+}
+
 # TODO: DOCUMENT ME
 function Show-Status {
     [CmdletBinding()]
-    param()
-    $info = Get-Info
-    $changes = Get-Change
+    param (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    $status = Get-Status -Root $Root
+    $changes = $status.Changes
 
-    $Info | Out-Default
+    $status | Out-Default
 
     if($info.BehindBy) {
         WriteMessage "Action" "  (use `git pull` to merge the remote branch into yours)"
@@ -377,3 +397,5 @@ function New-Repository {
         } finally {} 
     }
 }
+
+. $PSScriptRoot\PSGitPrompt.ps1
