@@ -2,3 +2,6 @@
     path = lib/Pester
     url = https://github.com/Jaykul/Pester.git
     branch = LanguageDecoupling
+[submodule "Configuration"]
+    path = lib/Configuration
+    url=https://github.com/PoshCode/Configuration.git

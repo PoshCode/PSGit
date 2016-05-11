@@ -17,7 +17,7 @@ Write-Host "TESTING: $ModuleName with $Path\Test"
 $Version = &"${PSScriptRoot}\Get-Version.ps1" -Module (Join-Path $Path\src "${ModuleName}.psd1") -DevBuild:$RevisionNumber -RevisionNumber:$RevisionNumber
 $ReleasePath = Join-Path $Path $Version
 
-Write-Verbose "COPY   $ReleasePath\"
+Write-Verbose "COPY   $ReleasePath\ ${OutputPath}\${ModuleName}"
 $null = robocopy $ReleasePath "${OutputPath}\${ModuleName}" /MIR /NP /LOG+:"$OutputPath\build.log"
 
 $zipFile = Join-Path $OutputPath "${ModuleName}-${Version}.zip"
