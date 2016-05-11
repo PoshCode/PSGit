@@ -117,12 +117,12 @@ function Write-Status {
             $config.Before | Write-Text
             $config.Branch | Write-Text
             $config.Branch | Write-Text ($Status.Branch + " ")
-            if($Status.AheadBy -ne 0) {
-                $config.AheadBy | Write-Text ([char]0x25B2)
+            if($Status.AheadBy -gt 0) {
+                $config.AheadBy | Write-Text
                 $config.AheadBy | Write-Text ($Status.AheadBy + " ")
             }
-            if($Status.BehindBy -ne 0) {
-                $config.BehindBy | Write-Text ([char]0x25BC)
+            if($Status.BehindBy -gt 0) {
+                $config.BehindBy | Write-Text
                 $config.BehindBy | Write-Text ($Status.BehindBy + " ")
             }
 
@@ -166,8 +166,10 @@ function Write-Status {
                     $config.Working | Write-Text "%$count "
                 }
             }
+            $config.After | Write-Text 
+        } else {
+            $config.NoStatus | Write-Text 
         }
-        $config.After | Write-Text
     }
 }
 

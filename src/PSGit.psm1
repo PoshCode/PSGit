@@ -232,7 +232,7 @@ $BranchProperties =
     @{ Name="Tip"; Expr={$_.Tip.Sha}}, 
     @{ Name="Remote"; expr = { $_.Remote.Url } }, 
     @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }}, 
-    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy}}, 
+    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy }}, 
     @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }},
     @{ Name="GitDir"; Expr= {$_.Repository.Info.WorkingDirectory}}
 

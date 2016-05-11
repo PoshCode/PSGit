@@ -12,10 +12,12 @@
     AheadBy = PSObject @{
         Foreground = ConsoleColor Yellow
         Background = ConsoleColor Black
+        Object = [char]0x25B2
     }
     BehindBy = PSObject @{
         Foreground = ConsoleColor Yellow
         Background = ConsoleColor Black
+        Object = [char]0x25BC
     }
     Index = PSObject @{
         Foreground = ConsoleColor Green
@@ -31,9 +33,15 @@
         Background = ConsoleColor Black
     }
     After = PSObject @{
-        Object = "]"
+        Object = "]:"
         Foreground = ConsoleColor White
         Background = ConsoleColor Black
     }
+    NoStatus = PSObject @{
+        Object = ":"
+        Foreground = ConsoleColor White
+        Background = ConsoleColor Black
+    }
+
     HideZero = $true
 }
