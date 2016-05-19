@@ -181,11 +181,11 @@ if(!(Test-Path Variable:Global:VcsPromptStatuses)) {
 function Global:Write-VcsStatus { $Global:VcsPromptStatuses | foreach { & $_ } }
 
 # Add scriptblock that will execute for Write-VcsStatus
-$Global:VcsPromptStatuses += {
+$Global:VcsPromptStatuses = @($Global:VcsPromptStatuses) + @({
     $WarningPreference, $WP = "SilentlyContinue", $WarningPreference
     Write-Status
     $WarningPreference = $WP
-}
+})
 
 # but we don't want any duplicate hooks (if people import the module twice)
 $Global:VcsPromptStatuses = @( $Global:VcsPromptStatuses | Select -Unique )
