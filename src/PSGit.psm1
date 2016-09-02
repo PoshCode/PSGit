@@ -12,7 +12,7 @@ function WriteMessage {
         [Parameter(Mandatory=$true,Position=1)]
         [string]
         $Message,
-        
+
         # Color of the message, it will default to the hosts' verbose color.
         [Parameter(Position=2)]
         [ConsoleColor]
@@ -24,8 +24,8 @@ function WriteMessage {
     )
 
     #todo check to see if the preference is on or off
-    
-    Write-Host "$($Type.ToUpper()): $Message" -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor 
+
+    Write-Host "$($Type.ToUpper()): $Message" -ForegroundColor $ForegroundColor -BackgroundColor $BackgroundColor
 }
 
 function ConvertColor {
@@ -226,13 +226,13 @@ function Get-Change {
     }
 }
 
-$BranchProperties = 
-    @{ Name="Branch"; Expr={$_.Name}}, 
-    @{ Name="IsHead"; Expr={ $_.IsCurrentRepositoryHead}}, "IsRemote", "IsTracking", 
-    @{ Name="Tip"; Expr={$_.Tip.Sha}}, 
-    @{ Name="Remote"; expr = { $_.Remote.Url } }, 
-    @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }}, 
-    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy }}, 
+$BranchProperties =
+    @{ Name="Branch"; Expr={$_.Name}},
+    @{ Name="IsHead"; Expr={ $_.IsCurrentRepositoryHead}}, "IsRemote", "IsTracking",
+    @{ Name="Tip"; Expr={$_.Tip.Sha}},
+    @{ Name="Remote"; expr = { $_.Remote.Url } },
+    @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }},
+    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy }},
     @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }},
     @{ Name="GitDir"; Expr= {$_.Repository.Info.WorkingDirectory}}
 
@@ -255,7 +255,7 @@ function Get-Info {
             $repo = New-Object LibGit2Sharp.Repository $Path
 
             # We have to transform the object to keep the data around after .Dispose()
-            $repo.Head | 
+            $repo.Head |
                 Select-Object $BranchProperties |
                 ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
         } finally {
@@ -298,7 +298,7 @@ function Get-Branch {
             # We have to transform the object to keep the data around after .Dispose()
             ) | Select-Object $BranchProperties |
                 ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
-           
+
         } finally {
             if($null -ne $repo) {
                 $repo.Dispose()
@@ -315,7 +315,7 @@ function Get-Status {
         [ValidateNotNullOrEmpty()]
         [String]$Root = $Pwd
     )
-    Get-Info -Root $Root | 
+    Get-Info -Root $Root |
         Add-Member -Type NoteProperty -Name Changes -Value (
             Get-Change -Root $Root
         ) -Passthru
@@ -389,13 +389,14 @@ function New-Repository {
     end {
         $Path = Convert-Path $Root
         # Not sure why this is needed, but if you do a folder on the root it fails
-        $Path = Join-Path $path "." 
+        $Path = Join-Path $path "."
 
         $null = mkdir $Root -Force -ErrorAction SilentlyContinue
         try {
             $rtn = [LibGit2Sharp.Repository]::Init($Path)
-        } finally {} 
+        } finally {}
     }
 }
 
 . $PSScriptRoot\PSGitPrompt.ps1
+. $PSScriptRoot\PSGitPowerline.ps1

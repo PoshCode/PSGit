@@ -4,20 +4,38 @@ function Set-PromptSettings {
         [string]$BeforeText = "[",
         [ConsoleColor]$BeforeForeground,
         [ConsoleColor]$BeforeBackground,
+
         [string]$BranchText = $([char]0x03BB),
         [ConsoleColor]$BranchForeground,
         [ConsoleColor]$BranchBackground,
+
         [ConsoleColor]$AheadByForeground,
         [ConsoleColor]$AheadByBackground,
+
         [ConsoleColor]$BehindByForeground,
         [ConsoleColor]$BehindByBackground,
-        [ConsoleColor]$IndexForeground,
-        [ConsoleColor]$IndexBackground,
-        [ConsoleColor]$WorkingForeground,
-        [ConsoleColor]$WorkingBackground,
-        [string]$AfterText = "]",
-        [ConsoleColor]$AfterForeground,
-        [ConsoleColor]$AfterBackground,
+
+        [string]$BeforeChanges = '',
+        [ConsoleColor]$BeforeChangesForeground,
+        [ConsoleColor]$BeforeChangesBackground,
+
+        [ConsoleColor]$StagedChangesForeground,
+        [ConsoleColor]$StagedChangesBackground,
+
+        [string]$Separator = '|',
+        [ConsoleColor]$SeparatorForeground,
+        [ConsoleColor]$SeparatorBackground,
+
+        [ConsoleColor]$UnStagedChangesForeground,
+        [ConsoleColor]$UnStagedChangesBackground,
+
+        [string]$AfterChanges = "]:",
+        [ConsoleColor]$AfterChangesForeground,
+        [ConsoleColor]$AfterChangesBackground,
+
+        [string]$AfterNoChanges = "]:",
+        [ConsoleColor]$AfterNoChangesForeground,
+        [ConsoleColor]$AfterNoChangesBackground,
         [Switch]$HideZero
     )
 
@@ -54,26 +72,44 @@ function Set-PromptSettings {
         "BehindByBackground" {
             $config.BehindBy.Background = $PSBoundParameters[$_]
         }
-        "IndexForeground" {
-            $config.Index.Foreground = $PSBoundParameters[$_]
+        "BeforeChangesText" {
+            $config.BeforeChanges.Object = $PSBoundParameters[$_]
         }
-        "IndexBackground" {
-            $config.Index.Background = $PSBoundParameters[$_]
+        "BeforeChangesForeground" {
+            $config.BeforeChanges.Foreground = $PSBoundParameters[$_]
         }
-        "WorkingForeground" {
-            $config.Working.Foreground = $PSBoundParameters[$_]
+        "BeforeChangesBackground" {
+            $config.BeforeChanges.Background = $PSBoundParameters[$_]
         }
-        "WorkingBackground" {
-            $config.Working.Background = $PSBoundParameters[$_]
+        "StagedChangesForeground" {
+            $config.StagedChanges.Foreground = $PSBoundParameters[$_]
         }
-        "AfterText" {
-            $config.After.Object = $PSBoundParameters[$_]
+        "StagedChangesBackground" {
+            $config.StagedChanges.Background = $PSBoundParameters[$_]
         }
-        "AfterForeground" {
-            $config.After.Foreground = $PSBoundParameters[$_]
+        "UnStagedChangesForeground" {
+            $config.UnStagedChanges.Foreground = $PSBoundParameters[$_]
         }
-        "AfterBackground" {
-            $config.After.Background = $PSBoundParameters[$_]
+        "UnStagedChangesBackground" {
+            $config.UnStagedChanges.Background = $PSBoundParameters[$_]
+        }
+        "AfterChangesText" {
+            $config.AfterChanges.Object = $PSBoundParameters[$_]
+        }
+        "AfterChangesForeground" {
+            $config.AfterChanges.Foreground = $PSBoundParameters[$_]
+        }
+        "AfterChangesBackground" {
+            $config.AfterChanges.Background = $PSBoundParameters[$_]
+        }
+        "AfterNoChangesText" {
+            $config.AfterNoChanges.Object = $PSBoundParameters[$_]
+        }
+        "AfterNoChangesForeground" {
+            $config.AfterNoChanges.Foreground = $PSBoundParameters[$_]
+        }
+        "AfterNoChangesBackground" {
+            $config.AfterNoChanges.Background = $PSBoundParameters[$_]
         }
         "HideZero" {
             $Config.HideZero =  $PSBoundParameters[$_]
@@ -87,19 +123,22 @@ function Write-Text {
     [CmdletBinding()]
     param(
         [Parameter(ValueFromPipelineByPropertyName=$true, Position=0)]
-        $Object, 
+        [Alias("Content","text")]
+        $Object,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [Alias("Foreground")]
-        [ConsoleColor]$ForegroundColor, 
+        [Alias("fg","Foreground")]
+        $ForegroundColor,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [Alias("Background")]
-        [ConsoleColor]$BackgroundColor
+        [Alias("bg","Background")]
+        $BackgroundColor
     )
     process {
-        Write-Verbose ($PSBoundParameters | Out-String)
-        Write-Host -NoNewLine @PSBoundParameters
+        $Parameters = @{} + $PSBoundParameters
+        $Null = $PSBoundParameters.GetEnumerator() | Where Value -eq $null | % { $Parameters.Remove($_.Key) }
+        Write-Debug ($Parameters | Out-String)
+        Write-Host -NoNewLine @Parameters
     }
 }
 
@@ -126,49 +165,64 @@ function Write-Status {
                 $config.BehindBy | Write-Text ($Status.BehindBy + " ")
             }
 
-            if(0 -ne ($Status.Changes | Where { $_.Staged }).Length) {
-                $count = @($Status.Changes | Where { $_.Staged -and ($_.Change -eq "Added") }).Length
+            $StagedChanges = @($Status.Changes | Where { $_.Staged })
+            $UnStagedChanges = @($Status.Changes | Where { !$_.Staged })
+
+            if(($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) -and $config.BeforeChanges.Object) {
+                $config.BeforeChanges | Write-Text
+            }
+
+            if(0 -ne $StagedChanges.Length) {
+                $count = @($StagedChanges | Where { $_.Change -eq "Added" }).Length
                 if(0 -lt $count -or !$config.HideZero) {
-                    $config.Index | Write-Text "+$count "
+                    $config.StagedChanges | Write-Text "+$count "
                 }
-                $count = @($Status.Changes | Where { $_.Staged -and ($_.Change -eq "Modified") }).Length
+                $count = @($StagedChanges | Where { $_.Change -eq "Modified" }).Length
                 if(0 -lt $count -or !$config.HideZero) {
-                    $config.Index | Write-Text "~$count "
+                    $config.StagedChanges | Write-Text "~$count "
                 }
-                $count = @($Status.Changes | Where { $_.Staged -and ($_.Change -eq "Removed") }).Length
+                $count = @($StagedChanges | Where { $_.Change -eq "Removed" }).Length
                 if(0 -lt $count -or !$config.HideZero) {
-                    $config.Index | Write-Text "-$count "
+                    $config.StagedChanges | Write-Text "-$count "
                 }
-                $count = @($Status.Changes | Where { $_.Staged -and ($_.Change -eq "Renamed") }).Length
+                $count = @($StagedChanges | Where { $_.Change -eq "Renamed" }).Length
                 if(0 -lt $count -or !$config.HideZero) {
-                    $config.Index | Write-Text "%$count "
-                }
-                # We might need some sort of separator if there's both types of data
-                if(0 -ne @($Status.Changes | Where { !$_.Staged }).Length) {
-                    $config.Separator | Write-Text
+                    $config.StagedChanges | Write-Text "%$count "
                 }
             }
-            if(0 -ne ($Status.Changes | Where { !$_.Staged }).Length) {
-                # We might need some sort of separator if there's both types of data
-                if(0 -eq @($Status.Changes | Where { $_.Staged }).Length) {
-                    $config.Separator | Write-Text
-                }                
-                if(0 -lt ($count = @($Status.Changes | Where { !$_.Staged -and ($_.Change -eq "Added") }).Length) -or !$config.HideZero) {
-                    $config.Working | Write-Text "+$count "
+
+            if(($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0) -and $config.Separator.Object) {
+                $config.Separator | Write-Text
+            }
+
+            if(0 -ne $UnStagedChanges.Length) {
+                $count = @($UnStagedChanges | Where { $_.Change -eq "Added" }).Length
+                if(0 -lt $count -or !$config.HideZero) {
+                    $config.UnStagedChanges | Write-Text "+$count "
                 }
-                if(0 -lt ($count = @($Status.Changes | Where { !$_.Staged -and ($_.Change -eq "Modified") }).Length) -or !$config.HideZero) {
-                    $config.Working | Write-Text "~$count "
+                $count = @($UnStagedChanges | Where { $_.Change -eq "Modified" }).Length
+                if(0 -lt $count -or !$config.HideZero) {
+                    $config.UnStagedChanges | Write-Text "~$count "
                 }
-                if(0 -lt ($count = @($Status.Changes | Where { !$_.Staged -and ($_.Change -eq "Removed") }).Length) -or !$config.HideZero) {
-                    $config.Working | Write-Text "-$count "
+                $count = @($UnStagedChanges | Where { $_.Change -eq "Removed" }).Length
+                if(0 -lt $count -or !$config.HideZero) {
+                    $config.UnStagedChanges | Write-Text "-$count "
                 }
-                if(0 -lt ($count = @($Status.Changes | Where { !$_.Staged -and ($_.Change -eq "Renamed") }).Length) -or !$config.HideZero) {
-                    $config.Working | Write-Text "%$count "
+                $count = @($UnStagedChanges | Where { $_.Change -eq "Renamed" }).Length
+                if(0 -lt $count -or !$config.HideZero) {
+                    $config.UnStagedChanges | Write-Text "%$count "
                 }
             }
-            $config.After | Write-Text 
+
+            if(($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) -and $config.AfterChanges.Object) {
+                $config.AfterChanges | Write-Text
+            }
+            if(($StagedChanges.Length -eq 0 -and $UnStagedChanges.Length -eq 0) -and $config.AfterNoChanges.Object) {
+                $config.AfterNoChanges | Write-Text
+            }
+
         } else {
-            $config.NoStatus | Write-Text 
+            $config.NoStatus | Write-Text
         }
     }
 }

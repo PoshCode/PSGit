@@ -4,7 +4,7 @@
 RootModule = 'PSGit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1'
+ModuleVersion = '2.0.2'
 
 # ID used to uniquely identify this module
 GUID = 'df52529c-a328-4ee1-b52c-839646292588'
