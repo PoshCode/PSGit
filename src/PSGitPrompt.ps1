@@ -149,7 +149,7 @@ function Write-Status {
         $Config
     )
     end {
-        if(!$Status) { $Status = Get-Status }
+        if(!$Status) { $Status = Get-Status -WarningAction SilentlyContinue}
         if(!$Config) { $Config = Import-Configuration }
 
         if($Status -and $Config) {

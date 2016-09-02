@@ -40,7 +40,7 @@ Description = 'A PowerShell implementation of Git, providing a new command-line 
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName="Configuration"; ModuleVersion="0.8"})
+RequiredModules = @(@{ModuleName="Configuration"; ModuleVersion="0.9"})
 
 # Assemblies that must be loaded prior to importing this module
 RequiredAssemblies = 'lib\LibGit2Sharp.dll'
@@ -97,9 +97,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = '
-            Added Show-GitStatus, Get-GitBranch
-            Major change to Get-GitInfo (now returns the HEAD branch, rather than commit)
-            Ensure objects returned are PSGit objects rather than underlying LibGit2Sharp objects
+            Added a PowerLine function
+            Upgraded to Configuration 0.9 to get the UTF8 encoding
         '
 
 

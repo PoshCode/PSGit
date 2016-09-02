@@ -28,80 +28,60 @@ function Get-StatusPowerLine {
         $Config
     )
     end {
-        if(!$Status) { $Status = Get-Status }
+        if(!$Status) { $Status = Get-Status -WarningAction SilentlyContinue }
         if(!$Config) { $Config = Import-Configuration }
 
         if($Status -and $Config) {
-            $config.Before | New-PowerLineBlock
-            $config.Branch | New-PowerLineBlock
-            $config.Branch | New-PowerLineBlock ($Status.Branch + " ")
+            $config.Branch | New-PowerLineBlock ("$($config.Branch.Object)" + $Status.Branch)
             if($Status.AheadBy -gt 0) {
-                $config.AheadBy | New-PowerLineBlock
-                $config.AheadBy | New-PowerLineBlock ($Status.AheadBy + " ")
+                $config.AheadBy | New-PowerLineBlock ("$($config.AheadBy.Object)" + $Status.AheadBy)
             }
             if($Status.BehindBy -gt 0) {
-                $config.BehindBy | New-PowerLineBlock
-                $config.BehindBy | New-PowerLineBlock ($Status.BehindBy + " ")
+                $config.BehindBy | New-PowerLineBlock ("$($config.BehindBy.Object)" + $Status.BehindBy)
             }
 
             $StagedChanges = @($Status.Changes | Where { $_.Staged })
             $UnStagedChanges = @($Status.Changes | Where { !$_.Staged })
 
-            if(($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) -and $config.BeforeChanges.Object) {
+            if($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) {
                 $config.BeforeChanges | New-PowerLineBlock
             }
 
             if(0 -ne $StagedChanges.Length) {
-                $count = @($StagedChanges | Where { $_.Change -eq "Added" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.StagedChanges | New-PowerLineBlock "+$count "
-                }
-                $count = @($StagedChanges | Where { $_.Change -eq "Modified" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.StagedChanges | New-PowerLineBlock "~$count "
-                }
-                $count = @($StagedChanges | Where { $_.Change -eq "Removed" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.StagedChanges | New-PowerLineBlock "-$count "
-                }
-                $count = @($StagedChanges | Where { $_.Change -eq "Renamed" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.StagedChanges | New-PowerLineBlock "%$count "
-                }
+                $config.StagedChanges | New-PowerLineBlock $($(
+                    $count = @($StagedChanges | Where { $_.Change -eq "Added" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "+$count" }
+
+                    $count = @($StagedChanges | Where { $_.Change -eq "Modified" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "~$count" }
+
+                    $count = @($StagedChanges | Where { $_.Change -eq "Removed" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "-$count" }
+
+                    $count = @($StagedChanges | Where { $_.Change -eq "Renamed" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "%$count" }
+                ) -join " ")
             }
 
-            if(($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0) -and $config.Separator.Object) {
+            if($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0) {
                 $config.Separator | New-PowerLineBlock
             }
 
             if(0 -ne $UnStagedChanges.Length) {
-                $count = @($UnStagedChanges | Where { $_.Change -eq "Added" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.UnStagedChanges | New-PowerLineBlock "+$count "
-                }
-                $count = @($UnStagedChanges | Where { $_.Change -eq "Modified" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.UnStagedChanges | New-PowerLineBlock "~$count "
-                }
-                $count = @($UnStagedChanges | Where { $_.Change -eq "Removed" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.UnStagedChanges | New-PowerLineBlock "-$count "
-                }
-                $count = @($UnStagedChanges | Where { $_.Change -eq "Renamed" }).Length
-                if(0 -lt $count -or !$config.HideZero) {
-                    $config.UnStagedChanges | New-PowerLineBlock "%$count "
-                }
-            }
+                $config.UnStagedChanges | New-PowerLineBlock $($(
+                    $count = @($UnStagedChanges | Where { $_.Change -eq "Added" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "+$count" }
 
-            if(($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) -and $config.AfterChanges.Object) {
-                $config.AfterChanges | New-PowerLineBlock
-            }
-            if(($StagedChanges.Length -eq 0 -and $UnStagedChanges.Length -eq 0) -and $config.AfterNoChanges.Object) {
-                $config.AfterNoChanges | New-PowerLineBlock
-            }
+                    $count = @($UnStagedChanges | Where { $_.Change -eq "Modified" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "~$count" }
 
-        } else {
-            $config.NoStatus | New-PowerLineBlock
+                    $count = @($UnStagedChanges | Where { $_.Change -eq "Removed" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "-$count" }
+
+                    $count = @($UnStagedChanges | Where { $_.Change -eq "Renamed" }).Length
+                    if(0 -lt $count -or !$config.HideZero) { "%$count" }
+                ) -join " ")
+            }
         }
     }
 }
