@@ -6,9 +6,10 @@ build: false
 install:
   - git submodule update --init
   - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
-  - ps: Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
-  - ps: [environment]::SetEnvironmentVariable("PSModulePath", "$([environment]::GetEnvironmentVariable("PSModulePath", "User"));$pwd\lib", "User")
-  - ps: .\Build.ps1 -Step Clean, Update -Verbose
+  - ps: |
+      $Env:PSModulePath += ";$pwd\lib"
+      Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
+      .\Build.ps1 -Step Clean, Update -Verbose
 build_script:
   - ps: .\Build.ps1 -Step Build -Verbose
 test_script:
