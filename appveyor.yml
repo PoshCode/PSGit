@@ -8,7 +8,7 @@ install:
   - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
   - ps: Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
 build_script:
-  - ps: .\Build.ps1 -Verbose
+  - ps: $Env:PSModulePath += ";$pwd\lib"; .\Build.ps1 -Verbose
 test_script:
   - ps: .\Test.ps1 # -Quiet
 on_finish:
