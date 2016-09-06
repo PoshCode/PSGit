@@ -7,12 +7,14 @@ install:
   - git submodule update --init
   - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
   - ps: Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
+  - ps: [environment]::SetEnvironmentVariable("PSModulePath", "$([environment]::GetEnvironmentVariable("PSModulePath", "User"));$pwd\lib", "User")
+  - ps: .\Build.ps1 -Step Clean, Update -Verbose
 build_script:
-  - ps: $Env:PSModulePath += ";$pwd\lib"; .\Build.ps1 -Verbose
+  - ps: .\Build.ps1 -Step Build -Verbose
 test_script:
-  - ps: .\Test.ps1 # -Quiet
+  - ps: .\Build.ps1 -Step Test -Verbose
 on_finish:
-  - ps: .\Package.ps1 -Verbose | % { Push-AppveyorArtifact $_.FullName }
+  - ps: .\Build.ps1 -Step Package -Verbose | % { Push-AppveyorArtifact $_.FullName }
 notifications:
   - provider: Slack
     auth_token:
