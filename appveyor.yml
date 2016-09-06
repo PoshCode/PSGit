@@ -6,7 +6,7 @@ build: false
 install:
   - git submodule update --init
   - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
-  - ps: Install-Module Configuration -Minimum 1.0
+  - ps: Install-Module Configuration -Minimum 1.0 -Force -ForceBootstrap
 build_script:
   - ps: .\Build.ps1 -Verbose
 test_script:
