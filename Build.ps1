@@ -356,7 +356,9 @@ function test {
             Trace-Message "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
             $wc = New-Object 'System.Net.WebClient'
             $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit/${JobID}", $Options.OutputFile)
-            Trace-Message ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
+            if($response) {
+                Trace-Message ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
+            }
         } else {
             Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
         }
