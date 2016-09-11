@@ -32,7 +32,27 @@
         Foreground = ConsoleColor Green
         Background = ConsoleColor Black
     }
-    After = PSObject @{
+    BeforeChanges = PSObject @{
+        Object = "["
+        Foreground = ConsoleColor White
+        Background = ConsoleColor Black
+    }
+    AfterChanges = PSObject @{
+        Object = "]:"
+        Foreground = ConsoleColor White
+        Background = ConsoleColor Black
+    }
+    StagedChanges = PSObject @{
+        Object = ""
+        Foreground = ConsoleColor White
+        Background = ConsoleColor Black
+    }
+    UnStagedChanges = PSObject @{
+        Object = ""
+        Foreground = ConsoleColor White
+        Background = ConsoleColor Black
+    }
+    AfterNoChanges = PSObject @{
         Object = "]:"
         Foreground = ConsoleColor White
         Background = ConsoleColor Black

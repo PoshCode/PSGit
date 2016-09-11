@@ -21,7 +21,8 @@ function New-PowerLineBlock {
     }
 }
 
-function Get-StatusPowerLine {
+Set-Alias Get-StatusPowerLine Write-StatusPowerLine
+function Write-StatusPowerLine {
     [CmdletBinding()]
     param (
         $Status,

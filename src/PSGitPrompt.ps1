@@ -1,6 +1,22 @@
 function Set-PromptSettings {
     [CmdletBinding()]
     param(
+        [string]$AfterChangesText = "]:",
+        [ConsoleColor]$AfterChangesForeground,
+        [ConsoleColor]$AfterChangesBackground,
+
+        [string]$AfterNoChangesText = "]:",
+        [ConsoleColor]$AfterNoChangesForeground,
+        [ConsoleColor]$AfterNoChangesBackground,
+
+        [string]$AheadByText = '▲',
+        [ConsoleColor]$AheadByForeground,
+        [ConsoleColor]$AheadByBackground,
+
+        [string]$BehindByText = '▼',
+        [ConsoleColor]$BehindByForeground,
+        [ConsoleColor]$BehindByBackground,
+
         [string]$BeforeText = "[",
         [ConsoleColor]$BeforeForeground,
         [ConsoleColor]$BeforeBackground,
@@ -9,111 +25,65 @@ function Set-PromptSettings {
         [ConsoleColor]$BranchForeground,
         [ConsoleColor]$BranchBackground,
 
-        [ConsoleColor]$AheadByForeground,
-        [ConsoleColor]$AheadByBackground,
-
-        [ConsoleColor]$BehindByForeground,
-        [ConsoleColor]$BehindByBackground,
-
-        [string]$BeforeChanges = '',
+        [string]$BeforeChangesText = '',
         [ConsoleColor]$BeforeChangesForeground,
         [ConsoleColor]$BeforeChangesBackground,
+
+        [string]$SeparatorText = '|',
+        [ConsoleColor]$SeparatorForeground,
+        [ConsoleColor]$SeparatorBackground,
 
         [ConsoleColor]$StagedChangesForeground,
         [ConsoleColor]$StagedChangesBackground,
 
-        [string]$Separator = '|',
-        [ConsoleColor]$SeparatorForeground,
-        [ConsoleColor]$SeparatorBackground,
-
         [ConsoleColor]$UnStagedChangesForeground,
         [ConsoleColor]$UnStagedChangesBackground,
 
-        [string]$AfterChanges = "]:",
-        [ConsoleColor]$AfterChangesForeground,
-        [ConsoleColor]$AfterChangesBackground,
-
-        [string]$AfterNoChanges = "]:",
-        [ConsoleColor]$AfterNoChangesForeground,
-        [ConsoleColor]$AfterNoChangesBackground,
         [Switch]$HideZero
     )
 
     $config = Import-Configuration
 
     switch($PSBoundParameters.Keys) {
-        "BeforeText" {
-            $config.Before.Object = $PSBoundParameters[$_]
-        }
-        "BeforeForeground" {
-            $config.Before.Foreground = $PSBoundParameters[$_]
-        }
-        "BeforeBackground" {
-            $config.Before.Background = $PSBoundParameters[$_]
-        }
-        "BranchText" {
-            $config.Branch.Object = $PSBoundParameters[$_]
-        }
-        "BranchForeground" {
-            $config.Branch.Foreground = $PSBoundParameters[$_]
-        }
-        "BranchBackground" {
-            $config.Branch.Background = $PSBoundParameters[$_]
-        }
-        "AheadByForeground" {
-            $config.AheadBy.Foreground = $PSBoundParameters[$_]
-        }
-        "AheadByBackground" {
-            $config.AheadBy.Background = $PSBoundParameters[$_]
-        }
-        "BehindByForeground" {
-            $config.BehindBy.Foreground = $PSBoundParameters[$_]
-        }
-        "BehindByBackground" {
-            $config.BehindBy.Background = $PSBoundParameters[$_]
-        }
-        "BeforeChangesText" {
-            $config.BeforeChanges.Object = $PSBoundParameters[$_]
-        }
-        "BeforeChangesForeground" {
-            $config.BeforeChanges.Foreground = $PSBoundParameters[$_]
-        }
-        "BeforeChangesBackground" {
-            $config.BeforeChanges.Background = $PSBoundParameters[$_]
-        }
-        "StagedChangesForeground" {
-            $config.StagedChanges.Foreground = $PSBoundParameters[$_]
-        }
-        "StagedChangesBackground" {
-            $config.StagedChanges.Background = $PSBoundParameters[$_]
-        }
-        "UnStagedChangesForeground" {
-            $config.UnStagedChanges.Foreground = $PSBoundParameters[$_]
-        }
-        "UnStagedChangesBackground" {
-            $config.UnStagedChanges.Background = $PSBoundParameters[$_]
-        }
-        "AfterChangesText" {
-            $config.AfterChanges.Object = $PSBoundParameters[$_]
-        }
-        "AfterChangesForeground" {
-            $config.AfterChanges.Foreground = $PSBoundParameters[$_]
-        }
-        "AfterChangesBackground" {
-            $config.AfterChanges.Background = $PSBoundParameters[$_]
-        }
-        "AfterNoChangesText" {
-            $config.AfterNoChanges.Object = $PSBoundParameters[$_]
-        }
-        "AfterNoChangesForeground" {
-            $config.AfterNoChanges.Foreground = $PSBoundParameters[$_]
-        }
-        "AfterNoChangesBackground" {
-            $config.AfterNoChanges.Background = $PSBoundParameters[$_]
-        }
-        "HideZero" {
-            $Config.HideZero =  $PSBoundParameters[$_]
-        }
+        "AfterChangesText" { $config.AfterChanges.Object = $PSBoundParameters[$_] }
+        "AfterChangesBackground" { $config.AfterChanges.Background = $PSBoundParameters[$_] }
+        "AfterChangesForeground" { $config.AfterChanges.Foreground = $PSBoundParameters[$_] }
+
+        "AfterNoChangesText" { $config.AfterNoChanges.Object = $PSBoundParameters[$_] }
+        "AfterNoChangesBackground" { $config.AfterNoChanges.Background = $PSBoundParameters[$_] }
+        "AfterNoChangesForeground" { $config.AfterNoChanges.Foreground = $PSBoundParameters[$_] }
+
+        "AheadByText" { $config.AheadBy.Object = $PSBoundParameters[$_] }
+        "AheadByBackground" { $config.AheadBy.Background = $PSBoundParameters[$_] }
+        "AheadByForeground" { $config.AheadBy.Foreground = $PSBoundParameters[$_] }
+
+        "BeforeText" { $config.Before.Object = $PSBoundParameters[$_] }
+        "BeforeBackground" { $config.Before.Background = $PSBoundParameters[$_] }
+        "BeforeForeground" { $config.Before.Foreground = $PSBoundParameters[$_] }
+
+        "BeforeChangesText" { $config.BeforeChanges.Object = $PSBoundParameters[$_] }
+        "BeforeChangesBackground" { $config.BeforeChanges.Background = $PSBoundParameters[$_] }
+        "BeforeChangesForeground" { $config.BeforeChanges.Foreground = $PSBoundParameters[$_] }
+
+        "BehindByText" { $config.BehindBy.Object = $PSBoundParameters[$_] }
+        "BehindByBackground" { $config.BehindBy.Background = $PSBoundParameters[$_] }
+        "BehindByForeground" { $config.BehindBy.Foreground = $PSBoundParameters[$_] }
+
+        "BranchText" { $config.Branch.Object = $PSBoundParameters[$_] }
+        "BranchBackground" { $config.Branch.Background = $PSBoundParameters[$_] }
+        "BranchForeground" { $config.Branch.Foreground = $PSBoundParameters[$_] }
+
+        "SeparatorText" { $Config.Separator.Object = $PSBoundParameters[$_] }
+        "SeparatorBackground" { $Config.Separator.Background = $PSBoundParameters[$_] }
+        "SeparatorForeground" { $Config.Separator.Foreground = $PSBoundParameters[$_] }
+
+        "StagedChangesBackground" { $config.StagedChanges.Background = $PSBoundParameters[$_] }
+        "StagedChangesForeground" { $config.StagedChanges.Foreground = $PSBoundParameters[$_] }
+
+        "UnStagedChangesBackground" { $config.UnStagedChanges.Background = $PSBoundParameters[$_] }
+        "UnStagedChangesForeground" { $config.UnStagedChanges.Foreground = $PSBoundParameters[$_] }
+
+        "HideZero" { $Config.HideZero = [bool]$HideZero }
     }
 
     Export-Configuration $config
