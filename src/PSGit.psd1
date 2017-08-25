@@ -4,7 +4,7 @@
 RootModule = 'PSGit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.4'
+ModuleVersion = '2.1.1'
 
 # ID used to uniquely identify this module
 GUID = 'df52529c-a328-4ee1-b52c-839646292588'
@@ -40,7 +40,7 @@ Description = 'A PowerShell implementation of Git, providing a new command-line 
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName="Configuration"; ModuleVersion="0.9"})
+RequiredModules = @(@{ModuleName="Configuration"; ModuleVersion="0.9"}, @{ModuleName="Pansies"; ModuleVersion="1.0.0"})
 
 # Assemblies that must be loaded prior to importing this module
 RequiredAssemblies = 'lib\LibGit2Sharp.dll'
@@ -96,10 +96,9 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = '
-            Added a PowerLine function
-            Upgraded to Configuration 0.9 to get the UTF8 encoding
-        '
+        ReleaseNotes = "
+            Made a version dependent on Pansies' RGBColor
+        "
 
 
     } # End of PSData hashtable

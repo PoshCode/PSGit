@@ -1,67 +1,66 @@
 @{
+    HideZero = $true
     Before = PSObject @{
         Object = "["
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     Branch = PSObject @{
         Object = [char]0x03BB
-        Foreground = ConsoleColor Yellow
-        Background = ConsoleColor Black
+        Foreground = "Yellow"
+        Background = "Black"
     }
     AheadBy = PSObject @{
-        Foreground = ConsoleColor Yellow
-        Background = ConsoleColor Black
+        Foreground = "Yellow"
+        Background = "Black"
         Object = [char]0x25B2
     }
     BehindBy = PSObject @{
-        Foreground = ConsoleColor Yellow
-        Background = ConsoleColor Black
+        Foreground = "Yellow"
+        Background = "Black"
         Object = [char]0x25BC
     }
     Index = PSObject @{
-        Foreground = ConsoleColor Green
-        Background = ConsoleColor Black
+        Foreground = "Green"
+        Background = "Black"
     }
     Separator = PSObject @{
-        Background = ConsoleColor DarkGreen
-        Foreground = ConsoleColor White
+        Background = "DarkGreen"
+        Foreground = "White"
         Object = " | "
     }
     Working = PSObject @{
-        Foreground = ConsoleColor Green
-        Background = ConsoleColor Black
+        Foreground = "Green"
+        Background = "Black"
     }
     BeforeChanges = PSObject @{
         Object = "["
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     AfterChanges = PSObject @{
         Object = "]:"
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     StagedChanges = PSObject @{
         Object = ""
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     UnStagedChanges = PSObject @{
         Object = ""
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     AfterNoChanges = PSObject @{
         Object = "]:"
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
     NoStatus = PSObject @{
         Object = ":"
-        Foreground = ConsoleColor White
-        Background = ConsoleColor Black
+        Foreground = "White"
+        Background = "Black"
     }
-
-    HideZero = $true
 }

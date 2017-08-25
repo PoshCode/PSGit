@@ -15,11 +15,11 @@ function WriteMessage {
 
         # Color of the message, it will default to the hosts' verbose color.
         [Parameter(Position=2)]
-        [ConsoleColor]
+        [PoshCode.Pansies.RgbColor]
         $ForegroundColor = ($host.PrivateData.VerboseForegroundColor|ConvertColor),
         # Background color of the message, it will default to the hosts' verbose color.
         [Parameter(Position=3)]
-        [ConsoleColor]
+        [PoshCode.Pansies.RgbColor]
         $BackgroundColor = ($host.PrivateData.VerboseBackgroundColor|ConvertColor -default "black")
     )
 
@@ -36,10 +36,10 @@ function ConvertColor {
         $default="yellow"
     )
     if(!$color) {
-        [consolecolor]$default
+        [PoshCode.Pansies.RgbColor]$default
     }
-    elseif(($color -as [ConsoleColor]) -ne $null) {
-        [consolecolor]$color
+    elseif(($color -as [PoshCode.Pansies.RgbColor]) -ne $null) {
+        [PoshCode.Pansies.RgbColor]$color
     }
     else {
         if("system.Windows.Media.Color" -as [type]) {
@@ -50,7 +50,7 @@ function ConvertColor {
             [int]$r = if($color.R -gt 64){4}else{0}
             [int]$g = if($color.G -gt 64){2}else{0}
             [int]$b = if($color.B -gt 64){1}else{0}
-            [consolecolor]($bright -bor $r -bor $g -bor $b)
+            [PoshCode.Pansies.RgbColor]($bright -bor $r -bor $g -bor $b)
         }
         else {
             throw "Unable to process hosts default colors $color"

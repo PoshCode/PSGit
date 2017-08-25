@@ -2,48 +2,57 @@ function Set-PromptSettings {
     [CmdletBinding()]
     param(
         [string]$AfterChangesText = "]:",
-        [ConsoleColor]$AfterChangesForeground,
-        [ConsoleColor]$AfterChangesBackground,
+        [PoshCode.Pansies.RgbColor]$AfterChangesForeground,
+        [PoshCode.Pansies.RgbColor]$AfterChangesBackground,
 
         [string]$AfterNoChangesText = "]:",
-        [ConsoleColor]$AfterNoChangesForeground,
-        [ConsoleColor]$AfterNoChangesBackground,
+        [PoshCode.Pansies.RgbColor]$AfterNoChangesForeground,
+        [PoshCode.Pansies.RgbColor]$AfterNoChangesBackground,
 
         [string]$AheadByText = '▲',
-        [ConsoleColor]$AheadByForeground,
-        [ConsoleColor]$AheadByBackground,
+        [PoshCode.Pansies.RgbColor]$AheadByForeground,
+        [PoshCode.Pansies.RgbColor]$AheadByBackground,
 
         [string]$BehindByText = '▼',
-        [ConsoleColor]$BehindByForeground,
-        [ConsoleColor]$BehindByBackground,
+        [PoshCode.Pansies.RgbColor]$BehindByForeground,
+        [PoshCode.Pansies.RgbColor]$BehindByBackground,
 
         [string]$BeforeText = "[",
-        [ConsoleColor]$BeforeForeground,
-        [ConsoleColor]$BeforeBackground,
+        [PoshCode.Pansies.RgbColor]$BeforeForeground,
+        [PoshCode.Pansies.RgbColor]$BeforeBackground,
 
         [string]$BranchText = $([char]0x03BB),
-        [ConsoleColor]$BranchForeground,
-        [ConsoleColor]$BranchBackground,
+        [PoshCode.Pansies.RgbColor]$BranchForeground,
+        [PoshCode.Pansies.RgbColor]$BranchBackground,
 
         [string]$BeforeChangesText = '',
-        [ConsoleColor]$BeforeChangesForeground,
-        [ConsoleColor]$BeforeChangesBackground,
+        [PoshCode.Pansies.RgbColor]$BeforeChangesForeground,
+        [PoshCode.Pansies.RgbColor]$BeforeChangesBackground,
 
         [string]$SeparatorText = '|',
-        [ConsoleColor]$SeparatorForeground,
-        [ConsoleColor]$SeparatorBackground,
+        [PoshCode.Pansies.RgbColor]$SeparatorForeground,
+        [PoshCode.Pansies.RgbColor]$SeparatorBackground,
 
-        [ConsoleColor]$StagedChangesForeground,
-        [ConsoleColor]$StagedChangesBackground,
+        [PoshCode.Pansies.RgbColor]$StagedChangesForeground,
+        [PoshCode.Pansies.RgbColor]$StagedChangesBackground,
 
-        [ConsoleColor]$UnStagedChangesForeground,
-        [ConsoleColor]$UnStagedChangesBackground,
+        [PoshCode.Pansies.RgbColor]$UnStagedChangesForeground,
+        [PoshCode.Pansies.RgbColor]$UnStagedChangesBackground,
+
+        [string]$NoStatusText = ':',
+        [PoshCode.Pansies.RgbColor]$NoStatusForeground,
+        [PoshCode.Pansies.RgbColor]$NoStatusBackground,
+
+        [PoshCode.Pansies.RgbColor]$IndexForeground,
+        [PoshCode.Pansies.RgbColor]$IndexBackground,
+
+        [PoshCode.Pansies.RgbColor]$WorkingForeground,
+        [PoshCode.Pansies.RgbColor]$WorkingBackground,
 
         [Switch]$HideZero
     )
 
     $config = Import-Configuration
-
     switch($PSBoundParameters.Keys) {
         "AfterChangesText" { $config.AfterChanges.Object = $PSBoundParameters[$_] }
         "AfterChangesBackground" { $config.AfterChanges.Background = $PSBoundParameters[$_] }
@@ -83,8 +92,46 @@ function Set-PromptSettings {
         "UnStagedChangesBackground" { $config.UnStagedChanges.Background = $PSBoundParameters[$_] }
         "UnStagedChangesForeground" { $config.UnStagedChanges.Foreground = $PSBoundParameters[$_] }
 
+        "NoStatusText" { $config.NoStatus.Text = $PSBoundParameters[$_] }
+        "NoStatusForeground" { $config.NoStatus.Foreground = $PSBoundParameters[$_] }
+        "NoStatusBackground" { $config.NoStatus.Background = $PSBoundParameters[$_] }
+
+        "IndexForeground" { $config.Index.Foreground = $PSBoundParameters[$_] }
+        "IndexBackground" { $config.Index.Background = $PSBoundParameters[$_] }
+
+        "WorkingForeground" { $config.Working.Foreground = $PSBoundParameters[$_] }
+        "WorkingBackground" { $config.Working.Background = $PSBoundParameters[$_] }
+
         "HideZero" { $Config.HideZero = [bool]$HideZero }
     }
+
+    # function Clear-Config {
+    #     [CmdletBinding()]
+    #     param(
+    #         [AllowNull()][AllowEmptyString()]
+    #         [Parameter(ValueFromPipelineByPropertyName)]
+    #         [String]$Text,
+
+    #         [AllowNull()][AllowEmptyString()]
+    #         [Parameter(ValueFromPipelineByPropertyName)]
+    #         [PoshCode.Pansies.RgbColor]$Foreground,
+
+    #         [AllowNull()][AllowEmptyString()]
+    #         [Parameter(ValueFromPipelineByPropertyName)]
+    #         [PoshCode.Pansies.RgbColor]$Background
+    #     )
+    #     $Properties = @{} + $PSBoundParameters
+    #     foreach($key in @($Properties.Keys)) {
+    #         if($Properties.$key -eq "" -or $Properties.$Key -eq $Null) {
+    #             $null = $Properties.Remove($Key)
+    #         }
+    #     }
+    #     [PSCustomObject]$Properties
+    # }
+
+    # foreach($section in "AfterChanges","AfterNoChanges","AheadBy","Before","BeforeChanges","BehindBy","Branch","Separator","StagedChanges","UnStagedChanges","NoStatus","Index","Working") {
+    #     $config.$section = $config.$section | Clear-Config
+    # }
 
     Export-Configuration $config
 }

@@ -103,16 +103,16 @@ function clean {
     if(Test-Path $ReleasePath) {
         Trace-Message "       Clean up old build"
         Trace-Message "DELETE $ReleasePath\"
-        Remove-Item $ReleasePath -Recurse -Force
+        Remove-Item $ReleasePath -Recurse -Force -ErrorAction Continue
     }
     if(Test-Path $Path\packages) {
         Trace-Message "DELETE $Path\packages"
         # force reinstall by cleaning the old ones
-        Remove-Item $Path\packages\ -Recurse -Force
+        Remove-Item $Path\packages\ -Recurse -Force -ErrorAction Continue
     }
     if(Test-Path $Path\packages\build.log) {
         Trace-Message "DELETE $OutputPath\build.log"
-        Remove-Item $OutputPath\build.log -Recurse -Force
+        Remove-Item $OutputPath\build.log -Recurse -Force -ErrorAction Continue
     }
 
 }

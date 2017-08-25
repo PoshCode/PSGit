@@ -1,26 +1,3 @@
-function New-PowerLineBlock {
-    [CmdletBinding()]
-    param(
-        [Parameter(ValueFromPipelineByPropertyName=$true, Position=0)]
-        [Alias("Content","text")]
-        $Object,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [Alias("fg","Foreground")]
-        $ForegroundColor,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
-        [Alias("bg","Background")]
-        $BackgroundColor
-    )
-    process {
-        $Parameters = @{} + $PSBoundParameters
-        $Null = $PSBoundParameters.GetEnumerator() | Where Value -eq $null | % { $Parameters.Remove($_.Key) }
-        Write-Debug ($Parameters | Out-String)
-        $Parameters
-    }
-}
-
 Set-Alias Get-StatusPowerLine Write-StatusPowerLine
 function Write-StatusPowerLine {
     [CmdletBinding()]
@@ -44,7 +21,7 @@ function Write-StatusPowerLine {
             $StagedChanges = @($Status.Changes | Where { $_.Staged })
             $UnStagedChanges = @($Status.Changes | Where { !$_.Staged })
 
-            if($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0) {
+            if($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0 -and $Config.BeforeChanges.Object) {
                 $config.BeforeChanges | New-PowerLineBlock
             }
 
@@ -64,7 +41,7 @@ function Write-StatusPowerLine {
                 ) -join " ")
             }
 
-            if($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0) {
+            if($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0 -and $config.Separator.Object) {
                 $config.Separator | New-PowerLineBlock
             }
 
@@ -86,3 +63,25 @@ function Write-StatusPowerLine {
         }
     }
 }
+
+function SetPSGit {
+    [CmdletBinding()]
+    param()
+
+    if(Get-Command Add-PowerLineBloc[k]) {
+        Add-PowerLineBlock { Get-GitStatusPowerline } -AutoRemove
+    } else {
+        Write-Warning "Modifying `$Prompt list. Ensure you have a prompt function that invokes it's ScriptBlocks."
+        if ($Global:Prompt -is [System.Collections.IList]) {
+            $Global:Prompt.Insert($Global:Prompt.Count - 1, { Get-GitStatusPowerline })
+        } else {
+            [List[ScriptBlock]]$Global:Prompt = @({ Get-GitStatusPowerline })
+        }
+
+        $MyInvocation.MyCommand.Module.OnRemove = {
+            $Prompt.RemoveAt( @($Prompt).ForEach{$_.ToString().Trim()}.IndexOf("Get-GitStatusPowerline") )
+        }
+    }
+}
+
+SetPSGit
