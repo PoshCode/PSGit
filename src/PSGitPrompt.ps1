@@ -154,7 +154,7 @@ function Write-Text {
     process {
         $Parameters = @{} + $PSBoundParameters
         $Null = $PSBoundParameters.GetEnumerator() | Where Value -eq $null | % { $Parameters.Remove($_.Key) }
-        Write-Debug ($Parameters | Out-String)
+        # Write-Debug ($Parameters | Out-String)
         Write-Host -NoNewLine @Parameters
     }
 }
