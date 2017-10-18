@@ -164,7 +164,9 @@ function update {
     # Make sure the modules we're dependent on are installed
     foreach($manifest in Get-ChildItem $Script:SourcePath -filter *.psd1 -Recurse) {
         foreach($Dependency in (Get-Module $manifest.FullName -ListAvailable -ErrorAction SilentlyContinue).RequiredModules) {
-            Install-Module -Name $Dependency.Name
+            if(!(Get-Module $Dependency.Name -ListAvailable -EA 0)) {
+                Install-Module -Name $Dependency.Name -AllowClobber -Force -SkipPublisherCheck
+            }
         }
     }
 }
