@@ -1,4 +1,4 @@
-﻿#requires -Version "4.0" -Module PackageManagement, Configuration, Pester
+﻿#requires -Version "4.0" -Module PackageManagement
 [CmdletBinding()]
 param(
     # The step(s) to run. Defaults to "Clean", "Update", "Build", "Test", "Package"
@@ -43,50 +43,58 @@ function init {
     [CmdletBinding()]
     param()
 
+    # Build dependencies
+    if(!(Get-Module Configuration -ListAvailable -EA 0)) {
+        Install-Module Configuration -Scope CurrentUser
+    }
+    if(!(Get-Module Pester -ListAvailable -EA 0)) {
+        Install-Module Pester -Scope CurrentUser
+    }
+
     # Calculate Paths
-        # The output path is just a temporary output and logging location
-        $Script:OutputPath = Join-Path $Path output
-        $null = mkdir $OutputPath -Force
+    # The output path is just a temporary output and logging location
+    $Script:OutputPath = Join-Path $Path output
+    $null = mkdir $OutputPath -Force
 
-        # We expect the source for the module in a subdirectory called one of three things:
-        $Script:SourcePath = "src", "source", ${ModuleName} | ForEach { Join-Path $Path $_ -Resolve -ErrorAction Ignore } | Select -First 1
-        if(!$SourcePath) {
-            Write-Warning "This Build script expects a 'Source' or '$ModuleName' folder to be alongside it."
-            throw "Can't find module source folder."
-        }
+    # We expect the source for the module in a subdirectory called one of three things:
+    $Script:SourcePath = "src", "source", ${ModuleName} | ForEach { Join-Path $Path $_ -Resolve -ErrorAction Ignore } | Select -First 1
+    if(!$SourcePath) {
+        Write-Warning "This Build script expects a 'Source' or '$ModuleName' folder to be alongside it."
+        throw "Can't find module source folder."
+    }
 
-        $Script:ManifestPath = Join-Path $SourcePath "${ModuleName}.psd1" -Resolve -ErrorAction Ignore
-        if(!$ManifestPath) {
-            Write-Warning "This Build script expects a '${ModuleName}.psd1' in the '$SourcePath' folder."
-            throw "Can't find module source files"
-        }
-        $Script:TestPath = "Tests", "Specs" | ForEach { Join-Path $Path $_ -Resolve -ErrorAction Ignore } | Select -First 1
-        if(!$TestPath) {
-            Write-Warning "This Build script expects a 'Tests' or 'Specs' folder to contain tests."
-        }
-        # Calculate Version here, because we need it for the release path
-        [Version]$Script:Version = Get-Metadata $ManifestPath -PropertyName ModuleVersion
+    $Script:ManifestPath = Join-Path $SourcePath "${ModuleName}.psd1" -Resolve -ErrorAction Ignore
+    if(!$ManifestPath) {
+        Write-Warning "This Build script expects a '${ModuleName}.psd1' in the '$SourcePath' folder."
+        throw "Can't find module source files"
+    }
+    $Script:TestPath = "Tests", "Specs" | ForEach { Join-Path $Path $_ -Resolve -ErrorAction Ignore } | Select -First 1
+    if(!$TestPath) {
+        Write-Warning "This Build script expects a 'Tests' or 'Specs' folder to contain tests."
+    }
+    # Calculate Version here, because we need it for the release path
+    [Version]$Script:Version = Get-Metadata $ManifestPath -PropertyName ModuleVersion
 
-        # If the RevisionNumber is specified as ZERO, this is a release build ...
-        # If the RevisionNumber is not specified, this is a dev box build
-        # If the RevisionNumber is specified, we assume this is a CI build
-        if($Script:RevisionNumber -ge 0) {
-            # For CI builds we don't increment the build number
-            $Script:Build = if($Version.Build -le 0) { 0 } else { $Version.Build }
-        } else {
-            # For dev builds, assume we're working on the NEXT release
-            $Script:Build = if($Version.Build -le 0) { 1 } else { $Version.Build + 1}
-        }
+    # If the RevisionNumber is specified as ZERO, this is a release build ...
+    # If the RevisionNumber is not specified, this is a dev box build
+    # If the RevisionNumber is specified, we assume this is a CI build
+    if($Script:RevisionNumber -ge 0) {
+        # For CI builds we don't increment the build number
+        $Script:Build = if($Version.Build -le 0) { 0 } else { $Version.Build }
+    } else {
+        # For dev builds, assume we're working on the NEXT release
+        $Script:Build = if($Version.Build -le 0) { 1 } else { $Version.Build + 1}
+    }
 
-        if([string]::IsNullOrEmpty($RevisionNumber) -or $RevisionNumber -eq 0) {
-            $Script:Version = New-Object Version $Version.Major, $Version.Minor, $Build
-        } else {
-            $Script:Version = New-Object Version $Version.Major, $Version.Minor, $Build, $RevisionNumber
-        }
+    if([string]::IsNullOrEmpty($RevisionNumber) -or $RevisionNumber -eq 0) {
+        $Script:Version = New-Object Version $Version.Major, $Version.Minor, $Build
+    } else {
+        $Script:Version = New-Object Version $Version.Major, $Version.Minor, $Build, $RevisionNumber
+    }
 
-        # The release path is where the final module goes
-            $Script:ReleasePath = Join-Path $Path $Version
-            $Script:ReleaseManifest = Join-Path $ReleasePath "${ModuleName}.psd1"
+    # The release path is where the final module goes
+    $Script:ReleasePath = Join-Path $Path $Version
+    $Script:ReleaseManifest = Join-Path $ReleasePath "${ModuleName}.psd1"
 
 }
 
