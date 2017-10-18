@@ -73,7 +73,8 @@ function SetPSGit {
     } else {
         Write-Warning "Modifying `$Prompt list. Ensure you have a prompt function that invokes it's ScriptBlocks."
         if ($Global:Prompt -is [System.Collections.IList]) {
-            $Global:Prompt.Insert($Global:Prompt.Count - 1, { Get-GitStatusPowerline })
+            $Index = [Math]::Max(0, ($Global:Prompt.Count - 2));
+            $Global:Prompt.Insert($Index, { Get-GitStatusPowerline })
         } else {
             [System.Collections.Generic.List[ScriptBlock]]$Global:Prompt = [ScriptBlock[]]@({ Get-GitStatusPowerline })
         }

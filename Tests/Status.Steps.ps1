@@ -4,14 +4,14 @@ if(!(git config --get user.email)) {
     git config --global core.autocrlf "true"
 }
 
-BeforeScenario {
+BeforeEachScenario {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
     Remove-Item TestDrive:\* -Recurse -Force
 }
 
-AfterScenario {
+AfterEachScenario {
     Pop-Location
     [Environment]::CurrentDirectory = Convert-Path $Pwd
 }
