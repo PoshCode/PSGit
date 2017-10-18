@@ -75,7 +75,7 @@ function SetPSGit {
         if ($Global:Prompt -is [System.Collections.IList]) {
             $Global:Prompt.Insert($Global:Prompt.Count - 1, { Get-GitStatusPowerline })
         } else {
-            [Collections.Generic.List[ScriptBlock]]$Global:Prompt = @({ Get-GitStatusPowerline })
+            [System.Collections.Generic.List[ScriptBlock]]$Global:Prompt = [ScriptBlock[]]@({ Get-GitStatusPowerline })
         }
 
         $MyInvocation.MyCommand.Module.OnRemove = {
