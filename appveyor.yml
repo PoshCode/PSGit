@@ -3,8 +3,8 @@ image: Visual Studio 2017
 init:
 - ps: |
     Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
-    Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force
-    Install-Package Pansies -Provider PowerShellGet -Force
+    Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force -SkipPublisherCheck 
+    Install-Package Pansies -Provider PowerShellGet -Force -AllowClobber
 environment:
   CODECOV_TOKEN:
     secure: sCb/Zv0ZKIdJGJyMyD3DXlGzChdDnyZkbnfYNbXLwD86CuApmDKUM4JahzQ+NOt9
