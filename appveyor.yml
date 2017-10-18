@@ -9,6 +9,8 @@ install:
   - ps: |
       $Env:PSModulePath += ";$pwd\lib"
       Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
+      Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force
+      Install-Package Pansies -Provider PowerShellGet -Force
       .\Build.ps1 -Step Clean, Update -Verbose
 build_script:
   - ps: .\Build.ps1 -Step Build -Verbose

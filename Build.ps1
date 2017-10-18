@@ -1,4 +1,4 @@
-﻿#requires -Version "4.0" -Module PackageManagement
+﻿#requires -Version "4.0" -Module PackageManagement, Pester, Configuration
 [CmdletBinding()]
 param(
     # The step(s) to run. Defaults to "Clean", "Update", "Build", "Test", "Package"
@@ -42,14 +42,6 @@ function init {
     #   Calculate your paths and so-on here.
     [CmdletBinding()]
     param()
-
-    # Build dependencies
-    if(!(Get-Module Configuration -ListAvailable -EA 0)) {
-        Install-Module Configuration -Scope CurrentUser
-    }
-    if(!(Get-Module Pester -ListAvailable -EA 0)) {
-        Install-Module Pester -Scope CurrentUser
-    }
 
     # Calculate Paths
     # The output path is just a temporary output and logging location
@@ -169,12 +161,10 @@ function update {
         }
     }
 
-    # PowerShell module dependencies
-    
     # Make sure the modules we're dependent on are installed
-    foreach($manifest in Get-ChildItem .\src\ -filter *.psd1 -Recurse) {
+    foreach($manifest in Get-ChildItem $Script:SourcePath -filter *.psd1 -Recurse) {
         foreach($Dependency in (Get-Module $manifest.FullName -ListAvailable -ErrorAction SilentlyContinue).RequiredModules) {
-            Install-Module -Name $Dependency.Name -Scope CurrentUser
+            Install-Module -Name $Dependency.Name
         }
     }
 }
