@@ -1,4 +1,4 @@
-#requires -Version "4.0" -Module PackageManagement, Configuration, Pester
+﻿#requires -Version "4.0" -Module PackageManagement, Configuration, Pester
 [CmdletBinding()]
 param(
     # The step(s) to run. Defaults to "Clean", "Update", "Build", "Test", "Package"
@@ -138,6 +138,7 @@ function update {
     Set-StrictMode -Version Latest
     Trace-Message "UPDATE $ModuleName in $Path"
 
+    # Nuget dependencies
     if(Test-Path (Join-Path $Path packages.config)) {
         if(!($Name = Get-PackageSource | ? Location -match 'https://www.nuget.org/api/v2' | % Name)) {
             Write-Warning "Adding NuGet package source"
@@ -160,8 +161,14 @@ function update {
         }
     }
 
-    # we also check for git submodules...
-    git submodule update --init --recursive
+    # PowerShell module dependencies
+    
+    # Make sure the modules we're dependent on are installed
+    foreach($manifest in Get-ChildItem .\src\ -filter *.psd1 -Recurse) {
+        foreach($Dependency in (Get-Module $manifest.FullName -ListAvailable -ErrorAction SilentlyContinue).RequiredModules) {
+            Install-Module -Name $Dependency.Name -Scope CurrentUser
+        }
+    }
 }
 
 function build {
