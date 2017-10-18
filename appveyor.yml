@@ -1,26 +1,31 @@
-version: 1.0.0.{build}
+version: 1.0.{build}
+image: Visual Studio 2017
+init:
+- ps: >-
+    $PSVersionTable | Format-List
+    Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
+    Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force
+    Install-Package Pansies -Provider PowerShellGet -Force
 environment:
   CODECOV_TOKEN:
-    secure: rsFxWQLZS6IIliwfOn/YG3hnT/cgWPycvTqP2Ao6zkSlo0RGmCrlOv5H/O1Y0l8
-build: false
+    secure: sCb/Zv0ZKIdJGJyMyD3DXlGzChdDnyZkbnfYNbXLwD86CuApmDKUM4JahzQ+NOt9
 install:
-  - git submodule update --init
-  - nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
-  - ps: |
-      $Env:PSModulePath += ";$pwd\lib"
-      Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
-      Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force
-      Install-Package Pansies -Provider PowerShellGet -Force
-      .\Build.ps1 -Step Clean, Update -Verbose
+- ps: >-
+    nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
+    .\Build.ps1 -Step Clean, Update -Verbose
+nuget:
+  disable_publish_on_pr: true
 build_script:
-  - ps: .\Build.ps1 -Step Build -Verbose
+- ps: .\Build.ps1 -Step Build -Verbose
 test_script:
-  - ps: .\Build.ps1 -Step Test -Verbose
-on_finish:
-  - ps: .\Build.ps1 -Step Package -Verbose | % { Push-AppveyorArtifact $_.FullName }
+- ps: .\Build.ps1 -Step Test -Verbose
+deploy_script:
+- ps: .\Build.ps1 -Step Package -Verbose | % { Push-AppveyorArtifact $_.FullName }
 notifications:
-  - provider: Slack
-    auth_token:
-      secure: 1S3E8mVpvHEpdXsgHot0Qc0yUnU8ka/yd6Kex7r7yIZmSPwkMDIJEvdf/WMMTb/g
-    channel: poshcode
-    template: "<{{buildUrl}}|Build {{projectName}} {{buildVersion}} {{status}}>\nCommit <{{commitUrl}}|{{commitId}}> by {{commitAuthor}} on {{commitDate}}:\n_{{commitMessage}}_{{#messages}}\n{{.}}{{/messages}}"
+- provider: Slack
+  incoming_webhook: https://hooks.slack.com/services/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
+  channel: poshcode
+  template: <{{buildUrl}}|Build {{projectName}} {{buildVersion}} {{status}}>\nCommit <{{commitUrl}}|{{commitId}}> by {{commitAuthor}} on {{commitDate}}:\n_{{commitMessage}}_{{#messages}}\n{{.}}{{/messages}}
+  on_build_success: true
+  on_build_failure: true
+  on_build_status_changed: false
