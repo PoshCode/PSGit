@@ -21,10 +21,6 @@ function Write-StatusPowerLine {
             $StagedChanges = @($Status.Changes | Where { $_.Staged })
             $UnStagedChanges = @($Status.Changes | Where { !$_.Staged })
 
-            if($StagedChanges.Length -gt 0 -or $UnStagedChanges.Length -gt 0 -and $Config.BeforeChanges.Object) {
-                $config.BeforeChanges | New-PowerLineBlock
-            }
-
             if(0 -ne $StagedChanges.Length) {
                 $config.StagedChanges | New-PowerLineBlock $($(
                     $count = @($StagedChanges | Where { $_.Change -eq "Added" }).Length
@@ -39,10 +35,6 @@ function Write-StatusPowerLine {
                     $count = @($StagedChanges | Where { $_.Change -eq "Renamed" }).Length
                     if(0 -lt $count -or !$config.HideZero) { "%$count" }
                 ) -join " ")
-            }
-
-            if($StagedChanges.Length -gt 0 -and $UnStagedChanges.Length -gt 0 -and $config.Separator.Object) {
-                $config.Separator | New-PowerLineBlock
             }
 
             if(0 -ne $UnStagedChanges.Length) {

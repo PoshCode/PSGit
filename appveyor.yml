@@ -24,7 +24,7 @@ notifications:
 - provider: Slack
   incoming_webhook: https://hooks.slack.com/services/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
   channel: poshcode
-  template: <{{buildUrl}}|Build {{projectName}} {{buildVersion}} {{status}}>\nCommit <{{commitUrl}}|{{commitId}}> by {{commitAuthor}} on {{commitDate}}:\n_{{commitMessage}}_{{#messages}}\n{{.}}{{/messages}}
+  template: "<{{buildUrl}}|Build {{projectName}} {{buildVersion}} {{status}}>\nCommit <{{commitUrl}}|{{commitId}}> by {{commitAuthor}} on {{commitDate}}:\n_{{commitMessage}}_{{#messages}}\n{{.}}{{/messages}}"
   on_build_success: true
   on_build_failure: true
   on_build_status_changed: false

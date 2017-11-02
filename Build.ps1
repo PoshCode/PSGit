@@ -99,12 +99,34 @@ function clean {
         [Switch]$Packages
     )
 
+    $DeleteMe = Join-Path $Env:Temp "Delete This Folder"
+
+    while(Test-Path $DeleteMe -PathType Leaf) {
+        $DeleteMe = $DeleteMe + "!"
+    }
+
+    if(Test-Path $DeleteMe -PathType Container) {
+        Remove-Item $DeleteMe -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    $DeleteMe = Join-Path $DeleteMe ([Guid]::NewGuid().Guid)
+    $null = New-Item $DeleteMe -Type Directory -Force
+
     Trace-Message "OUTPUT Release Path: $ReleasePath"
     if(Test-Path $ReleasePath) {
         Trace-Message "       Clean up old build"
-        Trace-Message "DELETE $ReleasePath\"
-        Remove-Item $ReleasePath -Recurse -Force -ErrorAction Continue
+        Trace-Message "REMOVE $ReleasePath\"
+        Push-Location $ReleasePath
+        foreach($file in Get-ChildItem $ReleasePath -Recurse | Where-Object { !$_.PSIsContainer }) {
+            $RelPath = Resolve-Path $file.FullName -Relative | Split-Path
+            $Destination = Join-Path $DeleteMe $RelPath
+            $Destination = (New-Item $Destination -Type Directory -Force).FullName
+            Trace-Message "(re)move $RelPath to $Destination"
+            Move-Item $file.FullName -Force -Destination $Destination
+        }
+        Pop-Location
+        Remove-Item $ReleasePath -Force -Recurse
     }
+
     if(Test-Path $Path\packages) {
         Trace-Message "DELETE $Path\packages"
         # force reinstall by cleaning the old ones
@@ -165,7 +187,7 @@ function update {
     foreach($manifest in Get-ChildItem $Script:SourcePath -filter *.psd1 -Recurse) {
         foreach($Dependency in (Get-Module $manifest.FullName -ListAvailable -ErrorAction SilentlyContinue).RequiredModules) {
             if(!(Get-Module $Dependency.Name -ListAvailable -EA 0)) {
-                Install-Module -Name $Dependency.Name -AllowClobber -Force -SkipPublisherCheck
+                Install-Module -Name $Dependency.Name -AllowClobber -Force -SkipPublisherCheck -Scope CurrentUser
             }
         }
     }
@@ -302,9 +324,9 @@ function test {
     Set-Content "$TestPath\.Do.Not.COMMIT.This.Steps.ps1" "Import-Module $ReleasePath\${ModuleName}.psd1 -Force"
 
     # Show the commands they would have to run to get these results:
-    Write-Host $(prompt) -NoNewLine
+    Write-Host "C:\PS> " -NoNewLine
     Write-Host Import-Module $ReleasePath\${ModuleName}.psd1 -Force
-    Write-Host $(prompt) -NoNewLine
+    Write-Host "C:\PS> " -NoNewLine
 
     # TODO: Update dependency to Pester 4.0 and use just Invoke-Pester
     if(Get-Command Invoke-Gherkin -ErrorAction SilentlyContinue) {
@@ -312,8 +334,8 @@ function test {
         $TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
     }
 
-    # Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
-    # $TestResults = Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
+    Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
+    $TestResults = Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
 
     Remove-Module $ModuleName -ErrorAction SilentlyContinue
     Remove-Item "$TestPath\.Do.Not.COMMIT.This.Steps.ps1"
