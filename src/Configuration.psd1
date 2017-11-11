@@ -6,7 +6,7 @@
         Background = (RgbColor $null)
     }
     Branch = PSObject @{
-        Object = [char]0x03BB
+        Object = "&Branch; "
         Foreground = (RgbColor "Yellow")
         Background = (RgbColor $null)
     }

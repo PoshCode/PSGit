@@ -8,7 +8,7 @@ BeforeEachScenario {
     $script:repo = Convert-Path TestDrive:\
     Push-Location TestDrive:\
     [Environment]::CurrentDirectory = $repo
-    Remove-Item TestDrive:\* -Recurse -Force
+    Remove-Item TestDrive:\* -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 AfterEachScenario {
@@ -33,7 +33,7 @@ Given "we are in a git repository" {
     New-GitRepository
 }
 
-function ProcessGitActions($table) {
+function global:ProcessGitActions($table) {
     if($table) {
         foreach($change in $table) {
             switch($change.FileAction) {
@@ -64,17 +64,17 @@ function ProcessGitActions($table) {
                     Rename-Item $change.Name $change.Value
                 }
                 "Push" {
-                    &{[CmdletBinding()]param() 
+                    &{[CmdletBinding()]param()
 
                         git push
 
                     } 2>>..\git.log
                 }
                 "Branched" {
-                    &{[CmdletBinding()]param() 
+                    &{[CmdletBinding()]param()
 
-                        git checkout -b $change.Name 
-                
+                        git checkout -b $change.Name
+
                     } 2>>..\git.log
                 }
                 "Reset" {
@@ -173,7 +173,7 @@ Given "we have cloned a complex repository(?: and)?" {
         popd
 
         # create a "bare" repo, suitable for pushing to
-        git clone --bare .\source 
+        git clone --bare .\source
 
         mkdir copy
         cd .\copy
@@ -201,13 +201,13 @@ When "Get-GitChange (.*)? ?is called" {
     if($newspec -ne $pathspec) {
         $pathspec = $newspec
         $Options.ShowIgnored = $true
-    }    
+    }
 
     $newspec = $pathspec -replace "-HideSubmodules"
     if($newspec -ne $pathspec) {
         $pathspec = $newspec
         $Options.HideSubmodules = $true
-    }   
+    }
 
     $script:result = Get-GitChange $pathspec -ErrorVariable script:errors -WarningVariable script:warnings @Options -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
 }
@@ -262,7 +262,7 @@ When "Show-GitStatus (.*)? ?is called" {
 # the output should be: whatever
 # the output should be: 'whatever'
 # the output should be: "whatever"
-# the output should be: 
+# the output should be:
 #    """"multi-line string"""
 Then 'the output should be(?:.*(?<type>warning|error|information))?:(?:\s*(["''])?(?<output>.*)(\1))?' {
     param($output, $type = "default")
@@ -304,7 +304,7 @@ Then "the output should have" {
             }
             '$null' {
                 $script:result | Must -Any $Property.Property -Eq $null
-            } 
+            }
             default {
                 $script:result | Must -Any $Property.Property -Eq $Property.Value
             }
@@ -321,7 +321,7 @@ Then "output (\d+) '(.*)' should (\w+) '(.*)'" {
         Value = $Pattern
     }
 
-    $script:result[$index] | Must $Property @Parameters    
+    $script:result[$index] | Must $Property @Parameters
 }
 
 Then "output (\d+) should have" {
@@ -339,7 +339,7 @@ Then "output (\d+) should have" {
             }
             '$null' {
                 $script:result[$index] | Must -Any $Property.Property -Eq $null
-            } 
+            }
             default {
                 $script:result[$index] | Must -Any $Property.Property -Eq $Property.Value
             }
@@ -374,7 +374,7 @@ Then "the status of git should be" {
 
     for($f =0; $f -lt $Result.Count; $f++) {
         # Staged | Change  | Path
-        $R = $Result[$f] 
+        $R = $Result[$f]
         $T = $Table[$f]
         if($T.OldPath) {
             $R | Must OldPath -eq $T.OldPath
@@ -388,7 +388,7 @@ Then "the status of git should be" {
 
 Then 'there should be a ["''](.*)["''] folder' {
     param($folder)
-    
+
     if(!(Test-Path $folder -PathType Container))
     {
         throw "Folder ($folder) not found!"
@@ -399,7 +399,7 @@ Then 'there should be a ["''](.*)["''] folder' {
 
 Then 'there should NOT be a ["''](.*)["''] file' {
     param($file)
-    
+
     if(Test-Path $file -PathType Leaf)
     {
         throw "File ($file) found! Should not be there!"

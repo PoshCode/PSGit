@@ -1,6 +1,6 @@
 @wip
 Feature: Add changes to a repo
-	In order to track changes with Git, 
+	In order to track changes with Git,
 	changes need to be added to the staging area a.k.a. the index
 	That's what Add-Change does.
 
@@ -19,7 +19,7 @@ Feature: Add changes to a repo
 	# -ErrorAction Continue translates to --ignore-errors, but that would be default
 	# -WhatIf translates to --dry-run
 	# -Verbose translates to -verbose (duh)
-	# Do you normally also list the common parameters (WhatIf, Verbose, ErrorAction) here? 
+	# Do you normally also list the common parameters (WhatIf, Verbose, ErrorAction) here?
 
 	@wip
 	Scenario: There's no repository
@@ -64,7 +64,7 @@ Feature: Add changes to a repo
 		And there are changes in a file is called TrackedFile.txt
 		And the file FileToBeDeleted.txt deleted from the staging area
 		And there is an untracked file called NewFile.txt
-		
+
 	@wip
 	Scenario: add more changes to the staging area
 		Given we have a repository with
@@ -80,7 +80,7 @@ Feature: Add changes to a repo
 		And the file FileToDelete.txt deleted from the staging area
 		And there are changes in a new file added to the staging area
 		And the added file called NewFile.txt
-		
+
 	@wip
 	Scenario: add more changes to the staging area but remove nothing
 		Given we have a repository with

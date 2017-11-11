@@ -61,18 +61,18 @@ function SetPSGit {
     param()
 
     if(Get-Command Add-PowerLineBloc[k]) {
-        Add-PowerLineBlock { Get-GitStatusPowerline } -AutoRemove
+        Add-PowerLineBlock { Write-StatusPowerLine } -AutoRemove
     } else {
         Write-Warning "Modifying `$Prompt list. Ensure you have a prompt function that invokes it's ScriptBlocks."
         if ($Global:Prompt -is [System.Collections.IList]) {
             $Index = [Math]::Max(0, ($Global:Prompt.Count - 2));
-            $Global:Prompt.Insert($Index, { Get-GitStatusPowerline })
+            $Global:Prompt.Insert($Index, { Write-StatusPowerLine })
         } else {
-            [System.Collections.Generic.List[ScriptBlock]]$Global:Prompt = [ScriptBlock[]]@({ Get-GitStatusPowerline })
+            [System.Collections.Generic.List[ScriptBlock]]$Global:Prompt = [ScriptBlock[]]@({ Write-StatusPowerLine })
         }
 
         $MyInvocation.MyCommand.Module.OnRemove = {
-            $Prompt.RemoveAt( @($Prompt).ForEach{$_.ToString().Trim()}.IndexOf("Get-GitStatusPowerline") )
+            $Prompt.RemoveAt( @($Prompt).ForEach{$_.ToString().Trim()}.IndexOf("Write-StatusPowerLine") )
         }
     }
 }

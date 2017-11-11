@@ -1,4 +1,5 @@
-function Set-PromptSettings {
+function Set-PromptSetting {
+    [Alias("Set-PromptSettings")]
     [CmdletBinding()]
     param(
         [string]$AfterChangesText = "]:",
