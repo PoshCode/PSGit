@@ -216,7 +216,7 @@ function build {
 
             $PackageSource = Get-Item $targets -ErrorAction SilentlyContinue | Select -First 1 -Expand FullName
             if(!$PackageSource) {
-                throw "Could not find a lib folder for $($Package.id) from package. You may need to run Setup.ps1"
+                throw "Could not find a lib folder for $($Package.id) from package. You may need to run Build -Step Update"
             }
 
             Trace-Message "robocopy $PackageSource $LibPath /E /NP /LOG+:'$OutputPath\build.log' /R:2 /W:15"
@@ -314,28 +314,29 @@ function test {
     Trace-Message "TESTING $ModuleName v$Version" -Verbose:(!$Quiet)
     Remove-Module $ModuleName -ErrorAction SilentlyContinue
 
-    $Options = @{
+    $PesterOptions = @{
         OutputFormat = "NUnitXml"
         OutputFile = (Join-Path $OutputPath TestResults.xml)
     }
-    if($Quiet) { $Options.Quiet = $Quiet }
-    if(!$ShowWip){ $Options.ExcludeTag = @("wip") }
+    if($Quiet) { $PesterOptions.Quiet = $Quiet }
+    if(!$ShowWip){ $PesterOptions.ExcludeTag = @("wip") }
 
     Set-Content "$TestPath\.Do.Not.COMMIT.This.Steps.ps1" "Import-Module $ReleasePath\${ModuleName}.psd1 -Force"
 
     # Show the commands they would have to run to get these results:
     Write-Host "C:\PS> " -NoNewLine
     Write-Host Import-Module $ReleasePath\${ModuleName}.psd1 -Force
-    Write-Host "C:\PS> " -NoNewLine
 
     # TODO: Update dependency to Pester 4.0 and use just Invoke-Pester
     if(Get-Command Invoke-Gherkin -ErrorAction SilentlyContinue) {
-        Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
-        $TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
+        Write-Host "C:\PS> " -NoNewLine
+        Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
+        $TestResults = @(Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
     }
 
-    Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
-    $TestResults = Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @Options
+    Write-Host "C:\PS> " -NoNewLine
+    Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
+    $TestResults += @(Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
 
     Remove-Module $ModuleName -ErrorAction SilentlyContinue
     Remove-Item "$TestPath\.Do.Not.COMMIT.This.Steps.ps1"
@@ -381,15 +382,15 @@ function test {
     }
 
     if(${JobID}) {
-        if(Test-Path $Options.OutputFile) {
+        if(Test-Path $PesterOptions.OutputFile) {
             Trace-Message "Sending Test Results to AppVeyor backend" -Verbose:(!$Quiet)
             $wc = New-Object 'System.Net.WebClient'
-            $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit/${JobID}", $Options.OutputFile)
+            $response = $wc.UploadFile("https://ci.appveyor.com/api/testresults/nunit/${JobID}", $PesterOptions.OutputFile)
             if($response) {
                 Trace-Message ([System.Text.Encoding]::ASCII.GetString($response)) -Verbose:(!$Quiet)
             }
         } else {
-            Write-Warning "Couldn't find Test Output: $($Options.OutputFile)"
+            Write-Warning "Couldn't find Test Output: $($PesterOptions.OutputFile)"
         }
     }
 

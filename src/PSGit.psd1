@@ -40,7 +40,10 @@ Description = 'A PowerShell implementation of Git, providing a new command-line 
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @(@{ModuleName="Configuration"; ModuleVersion="1.1.1"}, @{ModuleName="Pansies"; ModuleVersion="1.0.0"})
+RequiredModules = @(
+    @{ModuleName="Configuration"; ModuleVersion="1.1.1"},
+    @{ModuleName="Pansies"; ModuleVersion="1.0.0"}
+)
 
 # Assemblies that must be loaded prior to importing this module
 RequiredAssemblies = 'lib\LibGit2Sharp.dll'

@@ -36,13 +36,14 @@ Given "we are in a git repository" {
 function global:ProcessGitActions($table) {
     if($table) {
         foreach($change in $table) {
+            Write-Host "        $($change.FileAction) $($change.Name)" -Fore Green
             switch($change.FileAction) {
                 "Created" {
                     Set-Content $change.Name (Get-Date)
                 }
                 "Added" {
                     # TODO: replace with PSGit native commands
-                    git add --all $pathspec
+                    git add --all $change.Name
                 }
                 "Ignore" {
                     # TODO: replace with PSGit native commands
