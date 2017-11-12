@@ -29,32 +29,36 @@ function WriteMessage {
 }
 
 function ConvertColor {
+    #.Synopsis
+    #   A color converter that handles WPF colors
+    #.Description
+    #   ConvertColor exists specifically to handle the WPF colors that ISE uses as it's defaults
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline=$true)]
         $color,
         $default="yellow"
     )
-    if(!$color) {
-        [PoshCode.Pansies.RgbColor]$default
-    }
-    elseif(($color -as [PoshCode.Pansies.RgbColor]) -ne $null) {
-        [PoshCode.Pansies.RgbColor]$color
-    }
-    else {
-        if("system.Windows.Media.Color" -as [type]) {
+    if($color -is [string] -and $color.Length -gt 7) {
+        if($color -match "#00[0-9A-F]{6}") {
+            $color = if($host.PrivateData.ConsolePaneBackgroundColor) {
+                $host.PrivateData.ConsolePaneBackgroundColor
+            } else {
+                $host.UI.RawUI.BackgroundColor
+            }
+        }
+        if("System.Windows.Media.Color" -as [type]) {
             #if its a transparent color, just use the background color of the host
-            if($color -eq "#00FFFFFF") {$color = $host.PrivateData.ConsolePaneBackgroundColor}
-            if($color -is [string]){ $color = [System.Windows.Media.Color]$color }
-            [int]$bright = if($color.R -gt 128 -bor $color.G -gt 128 -bor $color.B -gt 128){8}else{0}
-            [int]$r = if($color.R -gt 64){4}else{0}
-            [int]$g = if($color.G -gt 64){2}else{0}
-            [int]$b = if($color.B -gt 64){1}else{0}
-            [PoshCode.Pansies.RgbColor]($bright -bor $r -bor $g -bor $b)
+            $color = "#" + ([System.Windows.Media.Color]"$color").ToString().Substring(3)
+        } elseif("$color"[0] -eq "#") {
+            $color = "#" + "$color".SubString($color.Length - 6)
         }
-        else {
-            throw "Unable to process hosts default colors $color"
-        }
+    }
+
+    if(($color -as [PoshCode.Pansies.RgbColor]) -ne $null) {
+        ([PoshCode.Pansies.RgbColor]$color).ConsoleColor
+    } else {
+         ([PoshCode.Pansies.RgbColor]$default).ConsoleColor
     }
 }
 #endregion

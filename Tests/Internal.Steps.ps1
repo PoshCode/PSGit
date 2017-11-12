@@ -1,8 +1,8 @@
 ﻿<#
 When "WriteMessage ((?<type>\S+)\s+(?<message>\S+))? ?is called" {
     param($type,$message)
-    Mock Write-Host -ParameterFilter {$object -eq "TIP: test"} -Verifiable 
-    
+    Mock Write-Host -ParameterFilter {$object -eq "TIP: test"} -Verifiable
+
     if($type) {
         $script:result = &(gmo psgit){WriteMessage -type test -message $message -InformationVariable information -InformationAction SilentlyContinue;$information }
     } else {
@@ -22,14 +22,14 @@ param($type,$message)
 
 When 'ConvertColor (?<color>\S+)? ?is called' {
 param($color)
-    #$script:errors = $null
+    $script:exceptions = $null
     try {
         $script:result = &(gmo psgit){ConvertColor -color $args[0] } "$color"
     }
     catch {
-        $script:errors = $_
+        $script:exceptions = $_
     }
-    
+
 }
 
 When 'ConvertColor is called with Default set to red' {
@@ -37,9 +37,8 @@ When 'ConvertColor is called with Default set to red' {
 }
 
 Then "it will Throw a Terminating Error" {
-
-    if(! $script:errors)
+    if($script:result -or !$script:exceptions)
     {
-        return "No error found"
+        throw "No error found"
     }
 }
