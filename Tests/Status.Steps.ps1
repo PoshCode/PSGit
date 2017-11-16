@@ -35,53 +35,72 @@ Given "we are in a git repository" {
 
 function global:ProcessGitActions($table) {
     if($table) {
-        foreach($change in $table) {
-            Write-Host "        $($change.FileAction) $($change.Name)" -Fore Green
-            switch($change.FileAction) {
-                "Created" {
-                    Set-Content $change.Name (Get-Date)
-                }
-                "Added" {
-                    # TODO: replace with PSGit native commands
-                    git add --all $change.Name
-                }
-                "Ignore" {
-                    # TODO: replace with PSGit native commands
-                    Add-Content .gitignore $change.Name
-                    git add .\.gitignore
-                    git commit -m "Ignore $($change.Name)"
-                }
-                "Modified" {
-                    Add-Content $change.Name (Get-Date)
-                }
-                "Commited" {
-                    # TODO: replace with PSGit native commands
-                    git commit -m "$($change.Name)"
-                }
-                "Removed" {
-                    Remove-Item $change.Name
-                }
-                "Renamed" {
-                    Rename-Item $change.Name $change.Value
-                }
-                "Push" {
-                    &{[CmdletBinding()]param()
+        try {
+            foreach($change in $table) {
+                Write-Host "        $($change.FileAction) $($change.Name)" -Fore Green
+                switch($change.FileAction) {
+                    "Created" {
+                        Set-Content $change.Name (Get-Date)
+                    }
+                    "Added" {
+                        # TODO: replace with PSGit native commands
+                        git add --all $change.Name
+                    }
+                    "Ignore" {
+                        # TODO: replace with PSGit native commands
+                        Add-Content .gitignore $change.Name
+                        git add .\.gitignore
+                        git commit -m "Ignore $($change.Name)"
+                    }
+                    "Modified" {
+                        Add-Content $change.Name (Get-Date)
+                    }
+                    "Commited" {
+                        # TODO: replace with PSGit native commands
+                        git commit -m "$($change.Name)"
+                    }
+                    "Removed" {
+                        Remove-Item $change.Name
+                    }
+                    "Renamed" {
+                        Rename-Item $change.Name $change.Value
+                    }
+                    "Push" {
+                        &{[CmdletBinding()]param()
 
-                        git push
+                            git push
 
-                    } 2>>..\git.log
-                }
-                "Branched" {
-                    &{[CmdletBinding()]param()
+                        } 2>>..\git.log
+                    }
+                    "Branched" {
+                        &{[CmdletBinding()]param()
 
-                        git checkout -b $change.Name
+                            git checkout -b $change.Name
 
-                    } 2>>..\git.log
-                }
-                "Reset" {
-                    git reset --hard $change.Name
+                        } 2>>..\git.log
+                    }
+                    "Reset" {
+                        git reset --hard $change.Name
+                    }
                 }
             }
+        } catch {
+            $ErrorRecord = $_
+            Write-Host "Caught exception processing git actions. `nStackTrace:" -ForegroundColor Yellow
+
+            if ($ErrorRecord -is [System.Management.Automation.ErrorRecord]) {
+                Write-Host $ErrorRecord.ScriptStackTrace
+                $Ex = $ErrorRecord.Exception
+            } else {
+                Write-Host $ErrorRecord.ErrorRecord.ScriptStackTrace
+                $Ex = $ErrorRecord
+            }
+            # recursively add the exception types as tags
+            do {
+                Write-Host ("Exception: " + $Ex.GetType().Name) -ForegroundColor Yellow
+                Write-Host $Ex
+                $Ex = $Ex.InnerException
+            } while ($Ex)
         }
     }
 }
