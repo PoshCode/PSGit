@@ -327,16 +327,15 @@ function test {
     Write-Host "C:\PS> " -NoNewLine
     Write-Host Import-Module $ReleasePath\${ModuleName}.psd1 -Force
 
-    # TODO: Update dependency to Pester 4.0 and use just Invoke-Pester
     if(Get-Command Invoke-Gherkin -ErrorAction SilentlyContinue) {
         Write-Host "C:\PS> " -NoNewLine
         Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
         $TestResults = @(Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
     }
 
-    Write-Host "C:\PS> " -NoNewLine
-    Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
-    $TestResults += @(Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
+    # Write-Host "C:\PS> " -NoNewLine
+    # Write-Host Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
+    # $TestResults += @(Invoke-Pester -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
 
     Remove-Module $ModuleName -ErrorAction SilentlyContinue
     Remove-Item "$TestPath\.Do.Not.COMMIT.This.Steps.ps1"

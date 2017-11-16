@@ -17,7 +17,7 @@ nuget:
 build_script:
 - ps: .\Build.ps1 -Step Build -Verbose
 test_script:
-- ps: .\Build.ps1 -Step Test -Verbose
+- ps: .\Build.ps1 -Step Test
 deploy_script:
 - ps: .\Build.ps1 -Step Package -Verbose | % { Push-AppveyorArtifact $_.FullName }
 notifications:
