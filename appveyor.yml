@@ -1,9 +1,9 @@
-version: 1.0.{build}
+version: 2.1.{build}
 image: Visual Studio 2017
 init:
 - ps: |
     Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
-    Install-Package Pester -Provider PowerShellGet -Minimum 4.0 -Force -SkipPublisherCheck 
+    Install-Package Pester -Provider PowerShellGet -Minimum 4.1 -Force -SkipPublisherCheck
     Install-Package Pansies -Provider PowerShellGet -Force -AllowClobber
 environment:
   CODECOV_TOKEN:
