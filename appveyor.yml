@@ -5,9 +5,6 @@ init:
     Install-Package Configuration -Provider PowerShellGet -Minimum 1.0 -Force -ForceBootstrap
     Install-Package Pester -Provider PowerShellGet -Minimum 4.1 -Force -SkipPublisherCheck
     Install-Package Pansies -Provider PowerShellGet -Force -AllowClobber
-environment:
-  CODECOV_TOKEN:
-    secure: sCb/Zv0ZKIdJGJyMyD3DXlGzChdDnyZkbnfYNbXLwD86CuApmDKUM4JahzQ+NOt9
 install:
 - ps: |
     nuget install libgit2sharp -OutputDirectory .\packages -ExcludeVersion
