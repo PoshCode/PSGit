@@ -100,9 +100,9 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = "
-            2.1.3 Remove 'Before' text from Write-StatusPowerLine
-                  Remove background color from default config
             2.1.0 Made a version dependent on Pansies' RGBColor
+                  Remove 'Before' text from Write-StatusPowerLine
+                  Remove background color from default config
         "
 
 
