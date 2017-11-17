@@ -330,7 +330,7 @@ function test {
     if(Get-Command Invoke-Gherkin -ErrorAction SilentlyContinue) {
         Write-Host "C:\PS> " -NoNewLine
         Write-Host Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
-        $TestResults = @(Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions)
+        $TestResults = Invoke-Gherkin -Path $TestPath -CodeCoverage "$ReleasePath\*.psm1" -PassThru @PesterOptions
     }
 
     # Write-Host "C:\PS> " -NoNewLine
@@ -342,41 +342,41 @@ function test {
 
     $script:failedTestsCount = 0
     $script:passedTestsCount = 0
-    foreach($result in $TestResults)
+
+    if($TestResults -and $TestResults.CodeCoverage.NumberOfCommandsAnalyzed -gt 0)
     {
-        if($result -and $result.CodeCoverage.NumberOfCommandsAnalyzed -gt 0)
+        $script:failedTestsCount += $TestResults.FailedCount
+        $script:passedTestsCount += $TestResults.PassedCount
+        $CodeCoverageTitle = 'Code Coverage {0:F1}%'  -f (100 * ($TestResults.CodeCoverage.NumberOfCommandsExecuted / $TestResults.CodeCoverage.NumberOfCommandsAnalyzed))
+
+        # TODO: this file mapping does not account for the new Public|Private module source (and I don't know how to make it do so)
+        # Map file paths, e.g.: \1.0 back to \src
+        for($i=0; $i -lt $TestResults.CodeCoverage.HitCommands.Count; $i++) {
+            $TestResults.CodeCoverage.HitCommands[$i].File = $TestResults.CodeCoverage.HitCommands[$i].File.Replace($ReleasePath, $SourcePath)
+        }
+        for($i=0; $i -lt $TestResults.CodeCoverage.MissedCommands.Count; $i++) {
+            $TestResults.CodeCoverage.MissedCommands[$i].File = $TestResults.CodeCoverage.MissedCommands[$i].File.Replace($ReleasePath, $SourcePath)
+        }
+
+        if($TestResults.CodeCoverage.MissedCommands.Count -gt 0) {
+            $TestResults.CodeCoverage.MissedCommands |
+                ConvertTo-Html -Title $CodeCoverageTitle |
+                Out-File (Join-Path $OutputPath "CodeCoverage-${Version}.html")
+        }
+        if(${CodeCovToken})
         {
-            $script:failedTestsCount += $result.FailedCount
-            $script:passedTestsCount += $result.PassedCount
-            $CodeCoverageTitle = 'Code Coverage {0:F1}%'  -f (100 * ($result.CodeCoverage.NumberOfCommandsExecuted / $result.CodeCoverage.NumberOfCommandsAnalyzed))
-
-            # TODO: this file mapping does not account for the new Public|Private module source (and I don't know how to make it do so)
-            # Map file paths, e.g.: \1.0 back to \src
-            for($i=0; $i -lt $TestResults.CodeCoverage.HitCommands.Count; $i++) {
-                $TestResults.CodeCoverage.HitCommands[$i].File = $TestResults.CodeCoverage.HitCommands[$i].File.Replace($ReleasePath, $SourcePath)
-            }
-            for($i=0; $i -lt $TestResults.CodeCoverage.MissedCommands.Count; $i++) {
-                $TestResults.CodeCoverage.MissedCommands[$i].File = $TestResults.CodeCoverage.MissedCommands[$i].File.Replace($ReleasePath, $SourcePath)
-            }
-
-            if($result.CodeCoverage.MissedCommands.Count -gt 0) {
-                $result.CodeCoverage.MissedCommands |
-                    ConvertTo-Html -Title $CodeCoverageTitle |
-                    Out-File (Join-Path $OutputPath "CodeCoverage-${Version}.html")
-            }
-            if(${CodeCovToken})
-            {
-                # TODO: https://github.com/PoshCode/PSGit/blob/dev/test/Send-CodeCov.ps1
-                Trace-Message "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
-                $response = &"$TestPath\Send-CodeCov" -CodeCoverage $result.CodeCoverage -RepositoryRoot $Path -OutputPath $OutputPath -Token ${CodeCovToken}
-                Trace-Message $response.message -Verbose:(!$Quiet)
-            }
+            # TODO: https://github.com/PoshCode/PSGit/blob/dev/test/Send-CodeCov.ps1
+            Trace-Message "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
+            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $TestResults.CodeCoverage -RepositoryRoot $Path -OutputPath $OutputPath -Token ${CodeCovToken}
+            Trace-Message $response.message -Verbose:(!$Quiet)
         }
     }
 
     # If we're on AppVeyor ....
     if(Get-Command Add-AppveyorCompilationMessage -ErrorAction SilentlyContinue) {
+
         Add-AppveyorCompilationMessage -Message ("{0} of {1} tests passed" -f @($TestResults.PassedScenarios).Count, (@($TestResults.PassedScenarios).Count + @($TestResults.FailedScenarios).Count)) -Category $(if(@($TestResults.FailedScenarios).Count -gt 0) { "Warning" } else { "Information"})
+
         Add-AppveyorCompilationMessage -Message ("{0:P} of code covered by tests" -f ($TestResults.CodeCoverage.NumberOfCommandsExecuted / $TestResults.CodeCoverage.NumberOfCommandsAnalyzed)) -Category $(if($TestResults.CodeCoverage.NumberOfCommandsExecuted -lt $TestResults.CodeCoverage.NumberOfCommandsAnalyzed) { "Warning" } else { "Information"})
     }
 
