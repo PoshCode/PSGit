@@ -7,6 +7,7 @@ if(!(git config --get user.email)) {
 BeforeEachScenario {
     $script:repo = Convert-Path TestDrive:/
     Push-Location TestDrive:/
+    Remove-Item ../git.log -ErrorAction SilentlyContinue
     [Environment]::CurrentDirectory = $repo
     Remove-Item TestDrive:/* -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -70,14 +71,14 @@ function global:ProcessGitActions($table) {
 
                             git push
 
-                        } 2>>../git.log
+                        } -ErrorAction SilentlyContinue 2>>../git.log
                     }
                     "Branched" {
                         &{[CmdletBinding()]param()
 
                             git checkout -b $change.Name
 
-                        } 2>>../git.log
+                        } -ErrorAction SilentlyContinue 2>>../git.log
                     }
                     "Reset" {
                         git reset --hard $change.Name
@@ -398,12 +399,12 @@ Then "the status of git should be" {
 
     for($f =0; $f -lt $Result.Count; $f++) {
         # Staged | Change  | Path
-        $R = $Result[$f]
+        $R = $Result[$f] | Select-Object Staged, Changed, @{N="Path";E={$_.Path.Trim("\/")}}
         $T = $Table[$f]
         if($T.OldPath) {
             $R | Must OldPath -eq $T.OldPath
         }
-        $R | Must Path    -eq ($T.Path.ToString().Trim("\/"))
+        $R | Must Path    -eq $T.Path
         $R | Must Staged  -eq ($T.Staged -eq "True")
         $R | Must Change  -eq $T.Change
 
