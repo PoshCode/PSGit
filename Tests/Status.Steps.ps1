@@ -86,7 +86,10 @@ function global:ProcessGitActions($table) {
             }
         } catch {
             $ErrorRecord = $_
-            Write-Host "Caught exception processing git actions. `nStackTrace:" -ForegroundColor Yellow
+            Write-Host "Caught exception processing git actions." -ForegroundColor Yellow
+            Get-Content ../git.log | Out-host
+            Write-Host "StackTrace:" -ForegroundColor Yellow
+
 
             if ($ErrorRecord -is [System.Management.Automation.ErrorRecord]) {
                 Write-Host $ErrorRecord.ScriptStackTrace
