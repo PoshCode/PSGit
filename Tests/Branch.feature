@@ -129,7 +129,7 @@ Feature: Get a list of branches
             | Branch    | dev       |
             | IsTracking| $True     |
             | IsRemote  | $False    |
-        And output 1 'Remote' should match '\.\.source'
+        And output 1 'Remote' should match '\.\./source'
         And output 2 should have
             | Property  | Value     |
             | Branch    | feature3  |
