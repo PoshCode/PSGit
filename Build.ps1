@@ -365,10 +365,14 @@ function test {
         }
         if(${CodeCovToken})
         {
-            # TODO: https://github.com/PoshCode/PSGit/blob/dev/test/Send-CodeCov.ps1
-            Trace-Message "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
-            $response = &"$TestPath\Send-CodeCov" -CodeCoverage $TestResults.CodeCoverage -RepositoryRoot $Path -OutputPath $OutputPath -Token ${CodeCovToken}
-            Trace-Message $response.message -Verbose:(!$Quiet)
+            try {
+                # TODO: https://github.com/PoshCode/PSGit/blob/dev/test/Send-CodeCov.ps1
+                Trace-Message "Sending CI Code-Coverage Results" -Verbose:(!$Quiet)
+                $response = &"$TestPath\Send-CodeCov" -CodeCoverage $TestResults.CodeCoverage -RepositoryRoot $Path -OutputPath $OutputPath -Token ${CodeCovToken}
+                Trace-Message $response.message -Verbose:(!$Quiet)
+            } catch {
+                Write-Warning "Error sending code-coverage data to CodeCov $($response)"
+            }
         }
     }
 
