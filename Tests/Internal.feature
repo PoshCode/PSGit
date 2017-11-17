@@ -1,4 +1,5 @@
-﻿Feature: Internal Function Tests
+﻿@Internal
+Feature: Internal Function Tests
     This will test the functionality of internal functions
 
     Scenario: Simple Message output with basic params
@@ -13,7 +14,7 @@
 
     Scenario: no WPF support
         When ConvertColor #00aaaaaa is called
-        Then the output should be: "Black"
+        Then the output should be: "{TheBackgroundColor}"
 
     Scenario: Color convert in ISE
         Given we have WPF loaded
@@ -23,12 +24,12 @@
     Scenario: Color convert in ISE (mostly for codecov on if's)
         Given we have WPF loaded
         When ConvertColor #00123123 is called
-        Then the output should be: "Black"
+        Then the output should be: "{TheBackgroundColor}"
 
     Scenario: Color Convert Transparent background
       Given we have WPF loaded
         When ConvertColor #00FFFFFF is called
-        Then the output should be: "Black"
+        Then the output should be: "{TheBackgroundColor}"
 
     Scenario: Color Convert Default param test
         When ConvertColor is called with Default set to red

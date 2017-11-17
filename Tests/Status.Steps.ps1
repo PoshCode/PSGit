@@ -91,7 +91,6 @@ function global:ProcessGitActions($table) {
             Get-Content ../git.log | Out-host
             Write-Host "StackTrace:" -ForegroundColor Yellow
 
-
             if ($ErrorRecord -is [System.Management.Automation.ErrorRecord]) {
                 Write-Host $ErrorRecord.ScriptStackTrace
                 $Ex = $ErrorRecord.Exception
@@ -305,7 +304,15 @@ Then 'the output should be(?:.*(?<type>warning|error|information))?:(?:\s*(["'']
             $script:result | % { $_.ToString() }| Must -ceq $output
         }
     }
+}
 
+Then 'the output should be: "{TheBackgroundColor}"' {
+    $bgColor = if ($host.PrivateData.ConsolePaneBackgroundColor) {
+        $host.PrivateData.ConsolePaneBackgroundColor
+    } else {
+        $host.UI.RawUI.BackgroundColor
+    }
+    $script:result | Must -Eq $bgColor
 }
 
 Then "there should be no output" {
