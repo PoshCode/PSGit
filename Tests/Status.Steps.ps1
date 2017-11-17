@@ -98,9 +98,10 @@ function global:ProcessGitActions($table) {
             # recursively add the exception types as tags
             do {
                 Write-Host ("Exception: " + $Ex.GetType().Name) -ForegroundColor Yellow
-                Write-Host $Ex
+                $Ex | Format-List * -Force | Out-String | Out-Host
                 $Ex = $Ex.InnerException
             } while ($Ex)
+            throw $ErrorRecord
         }
     }
 }
