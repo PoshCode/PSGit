@@ -5,10 +5,10 @@ if(!(git config --get user.email)) {
 }
 
 BeforeEachScenario {
-    $script:repo = Convert-Path TestDrive:\
-    Push-Location TestDrive:\
+    $script:repo = Convert-Path TestDrive:/
+    Push-Location TestDrive:/
     [Environment]::CurrentDirectory = $repo
-    Remove-Item TestDrive:\* -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item TestDrive:/* -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 AfterEachScenario {
@@ -22,7 +22,7 @@ Given "we have a command ([\w-]+)" {
 }
 
 Given "we are NOT in a repository" {
-    # Remove-Item TestDrive:\* -Recurse -Force
+    # Remove-Item TestDrive:/* -Recurse -Force
     if(gci){ throw "There Are Things Here!" }
 }
 Given "we are in an empty folder" {
@@ -49,7 +49,7 @@ function global:ProcessGitActions($table) {
                     "Ignore" {
                         # TODO: replace with PSGit native commands
                         Add-Content .gitignore $change.Name
-                        git add .\.gitignore
+                        git add ./.gitignore
                         git commit -m "Ignore $($change.Name)"
                     }
                     "Modified" {
@@ -70,14 +70,14 @@ function global:ProcessGitActions($table) {
 
                             git push
 
-                        } 2>>..\git.log
+                        } 2>>../git.log
                     }
                     "Branched" {
                         &{[CmdletBinding()]param()
 
                             git checkout -b $change.Name
 
-                        } 2>>..\git.log
+                        } 2>>../git.log
                     }
                     "Reset" {
                         git reset --hard $change.Name
@@ -119,7 +119,7 @@ Given "we have cloned a repository(?: and)?" {
     param($table)
 
     mkdir source
-    pushd .\source
+    pushd ./source
     # TODO: replace with PSGit native commands
     git init
     Set-Content SourceOne.ps1   (Get-Date)
@@ -128,13 +128,13 @@ Given "we have cloned a repository(?: and)?" {
     git commit -m "Initial Commit"
     popd
 
-    &{[CmdletBinding()]param() git clone --bare .\source } 2>..\git.log
+    &{[CmdletBinding()]param() git clone --bare ./source } 2>../git.log
 
     mkdir copy
-    cd .\copy
+    cd ./copy
 
     # git clone outputs information to stderr for no reason
-    &{[CmdletBinding()]param() git clone ..\source.git . } 2>..\git.log
+    &{[CmdletBinding()]param() git clone ../source.git . } 2>../git.log
 
     ProcessGitActions $table
 }
@@ -144,7 +144,7 @@ Given "we have cloned a complex repository(?: and)?" {
 
     &{
         mkdir source
-        pushd .\source
+        pushd ./source
         # TODO: replace with PSGit native commands
         git init
 
@@ -194,15 +194,15 @@ Given "we have cloned a complex repository(?: and)?" {
         popd
 
         # create a "bare" repo, suitable for pushing to
-        git clone --bare .\source
+        git clone --bare ./source
 
         mkdir copy
-        cd .\copy
+        cd ./copy
 
         # git clone outputs information to stderr for no reason
-        git clone ..\source.git .
+        git clone ../source.git .
 
-    } 2>>.\git.log
+    } 2>>./git.log
 
     ProcessGitActions $table
 }
@@ -400,7 +400,7 @@ Then "the status of git should be" {
         if($T.OldPath) {
             $R | Must OldPath -eq $T.OldPath
         }
-        $R | Must Path    -eq $T.Path
+        $R | Must Path    -eq ($T.Path.ToString().Trim("\/"))
         $R | Must Staged  -eq ($T.Staged -eq "True")
         $R | Must Change  -eq $T.Change
 

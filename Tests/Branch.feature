@@ -54,7 +54,7 @@ Feature: Get a list of branches
             | IsRemote  | $False    |
             | Ahead     | 1         |
             | Behind    | 0         |
-        And output 1 'Remote' should match '\.\.\\source'
+        And output 1 'Remote' should match '\.\./source'
 
     Scenario: Cloned Repository with multiple commits
         Given we have cloned a repository and
@@ -76,7 +76,7 @@ Feature: Get a list of branches
             | Ahead    | 3      |
             | Behind   | 0      |
 
-    Scenario: Upstream Changes 
+    Scenario: Upstream Changes
         Given we have cloned a repository and
             | FileAction | Name           |
             | Created    | FileOne.ps1    |
@@ -129,7 +129,7 @@ Feature: Get a list of branches
             | Branch    | dev       |
             | IsTracking| $True     |
             | IsRemote  | $False    |
-        And output 1 'Remote' should match '\.\.\\source'
+        And output 1 'Remote' should match '\.\.source'
         And output 2 should have
             | Property  | Value     |
             | Branch    | feature3  |
@@ -155,24 +155,24 @@ Feature: Get a list of branches
             | IsHead    | $True     |
             | IsTracking| $True     |
             | IsRemote  | $False    |
-        And output 1 'Remote' should match '\.\.\\source'
+        And output 1 'Remote' should match '\.\./source'
         And output 2 should have
             | Property  | Value         |
             | Branch    | origin/HEAD   |
             | IsTracking| $False        |
             | IsRemote  | $True         |
             | IsHead    | $False        |
-        And output 2 'Remote' should match '\.\.\\source'
+        And output 2 'Remote' should match '\.\./source'
         And output 3 should have
             | Property  | Value         |
             | Branch    | origin/dev    |
             | IsTracking| $False        |
             | IsRemote  | $True         |
             | IsHead    | $False        |
-        And output 3 'Remote' should match '\.\.\\source'
+        And output 3 'Remote' should match '\.\./source'
         And output 4 'Branch' should eq 'origin/feature1'
-        And output 4 'Remote' should match '\.\.\\source'
+        And output 4 'Remote' should match '\.\./source'
         And output 5 'Branch' should eq 'origin/feature2'
-        And output 5 'Remote' should match '\.\.\\source'
+        And output 5 'Remote' should match '\.\./source'
         And output 6 'Branch' should eq 'origin/master'
-        And output 6 'Remote' should match '\.\.\\source'
+        And output 6 'Remote' should match '\.\./source'

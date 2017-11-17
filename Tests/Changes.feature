@@ -43,7 +43,7 @@ Feature: Get a list of file changes
             | False  | Added  | FileOne.ps1   |
             | False  | Added  | FileThree.ps1 |
             | False  | Added  | FileTwo.ps1   |
- 
+
     Scenario: Added Files to Stage
         Given we have initialized a repository with
             | FileAction | Name          |
@@ -57,7 +57,7 @@ Feature: Get a list of file changes
             | True   | Added  | FileOne.ps1   |
             | True   | Added  | FileThree.ps1 |
             | True   | Added  | FileTwo.ps1   |
- 
+
     Scenario: Added and Modified Files
         Given we have initialized a repository with
             | FileAction | Name          |
@@ -105,7 +105,7 @@ Feature: Get a list of file changes
             | True   | Modified | FileOne.ps1   |
             | False  | Modified | FileTwo.ps1   |
             | False  | Added    | FileThree.ps1 |
- 
+
     Scenario: Removed Files
         Given we have initialized a repository with
             | FileAction | Name           |
@@ -121,7 +121,7 @@ Feature: Get a list of file changes
             | Staged | Change  | Path        |
             | True   | Removed | FileOne.ps1 |
             | False  | Removed | FileTwo.ps1 |
- 
+
     Scenario: Renamed Files
         Given we have initialized a repository with
             | FileAction | Name           | Value     |
@@ -142,7 +142,7 @@ Feature: Get a list of file changes
             | True   | Renamed  | File3.ps1 | FileThree.ps1 |
             | False  | Renamed  | File2.ps1 | FileTwo.ps1   |
             | False  | Modified | File3.ps1 |               |
- 
+
     Scenario: Ignored Files
         Given we have initialized a repository with
             | FileAction | Name        | Value |
@@ -164,7 +164,7 @@ Feature: Get a list of file changes
         Then the status of git should be
             | Staged | Change | Path        |
             | True   | Added  | .gitmodules |
-            | True   | Added  | module\     |
+            | True   | Added  | module      |
             | False  | Added  | FileOne.ps1 |
         When Get-GitChange -HideSubmodules is called
         Then the status of git should be

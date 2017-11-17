@@ -1,6 +1,6 @@
 Set-StrictMode -Version Latest
 
-. $PSScriptRoot\Must.Steps.ps1
+. $PSScriptRoot/Must.Steps.ps1
 
 Describe "Simple booleans" {
     Context "for positive assertions" {
@@ -25,7 +25,7 @@ Describe "Must Equal" -Tag "Acceptance" {
     It "works for the Must Equal assertion" {
         1 | Must -Equal 1
         { 2 | Must -Equal 1 } | Should Throw
-        
+
         "Hello" | Must -Equal "Hello"
         { "Help" | Must -Equal "Hello" } | Should Throw
     }
@@ -133,7 +133,7 @@ Describe "Must BeNullOrEmpty" -Tag "Acceptance" {
 
         { Must -InputObject 2 -BeNullOrEmpty } | Should Throw
         { Must -InputObject "Help" -BeNullOrEmpty } | Should Throw
-        
+
         # This is a little weird, but it's correct:
         # An array with stuff in it is not null or empty, even if everything in it is nulls
         { Must -InputObject @($Null) -BeNullOrEmpty } | Should Throw
@@ -164,7 +164,7 @@ Describe "Must BeNullOrEmpty" -Tag "Acceptance" {
     It "works for the Must Any BeNullOrEmpty assertion" {
         1,2,$null,4 | Must -Any -BeNullOrEmpty
         {1,3,4 | Must -Any -BeNullOrEmpty } | Should Throw
-        
+
         # This might catch people by suprise?
         1,2,@(),4 | Must -Any -BeNullOrEmpty
 
@@ -237,7 +237,7 @@ Describe "Null Value Behavior" -Tag "Regression", "Acceptance" {
 
     # It "can test for file contents" {
     #     Setup -File "test.foo" "expected text"
-    #     "$TestDrive\test.foo" | Should Contain "expected text"
+    #     "$TestDrive/test.foo" | Should Contain "expected text"
     # }
 
     # It "ensures all assertion functions provide failure messages" {
