@@ -399,7 +399,7 @@ Then "the status of git should be" {
 
     for($f =0; $f -lt $Result.Count; $f++) {
         # Staged | Change  | Path
-        $R = $Result[$f] | Select-Object Staged, Changed, @{N="Path";E={$_.Path.Trim("\/")}}
+        $R = $Result[$f] | Select-Object *, @{Name="Path"; Expr= {$_.Path.TrimEnd("\/")}} -ExcludeProperty Path
         $T = $Table[$f]
         if($T.OldPath) {
             $R | Must OldPath -eq $T.OldPath
