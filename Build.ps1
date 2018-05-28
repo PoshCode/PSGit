@@ -17,7 +17,7 @@ param(
     # The default supports PS3:  "net40","net35","net20","net45"
     # To only support PS4, use:  "net45","net40","net35","net20"
     # To support PS2, you use:   "net35","net20"
-    [string[]]$TargetFramework = @("net40","net35","net20","net45"),
+    [string[]]$TargetFramework = @("net40","net35","net20","net45","netstandard2.0"),
 
     # The revision number (pulled from the environment in AppVeyor)
     [Nullable[int]]$RevisionNumber = ${Env:APPVEYOR_BUILD_NUMBER},
@@ -205,9 +205,9 @@ function build {
             $LibPath = "$ReleasePath\lib"
             $folder = Join-Path $Path "packages\$($Package.id)*"
 
-            # The git NativeBinaries are special -- we need to copy all the "windows" binaries:
+            # The git NativeBinaries are special -- we need to copy all the binaries:
             if($Package.id -eq "LibGit2Sharp.NativeBinaries") {
-                $targets = Join-Path $folder 'libgit2\windows'
+                $targets = Join-Path $folder 'runtimes'
                 $LibPath = Join-Path $LibPath "NativeBinaries"
             } else {
                 # Check for each TargetFramework, in order of preference, fall back to using the lib folder
