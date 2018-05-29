@@ -127,16 +127,15 @@ function clean {
         Remove-Item $ReleasePath -Force -Recurse
     }
 
-    if(Test-Path $Path\packages) {
+    if (Test-Path $Path\packages) {
         Trace-Message "DELETE $Path\packages"
         # force reinstall by cleaning the old ones
         Remove-Item $Path\packages\ -Recurse -Force -ErrorAction Continue
     }
-    if(Test-Path $Path\packages\build.log) {
+    if (Test-Path $OutputPath\packages\build.log) {
         Trace-Message "DELETE $OutputPath\build.log"
         Remove-Item $OutputPath\build.log -Recurse -Force -ErrorAction Continue
     }
-
 }
 
 function update {
@@ -243,10 +242,12 @@ function build {
         $ReleaseModule = Join-Path $ReleasePath ${RootModule}
         Trace-Message "       Setting content for $ReleaseModule"
 
-        $FunctionsToExport = Join-Path $SourcePath Public\*.ps1 -Resolve | % { [System.IO.Path]::GetFileNameWithoutExtension($_) }
+        $FunctionsToExport = Join-Path $SourcePath Public\*.ps1 -Resolve |
+            ForEach-Object { [System.IO.Path]::GetFileNameWithoutExtension($_) }
+
         Set-Content $ReleaseModule ((
-            (Get-Content (Join-Path $SourcePath Private\*.ps1) -Raw) +
-            (Get-Content (Join-Path $SourcePath Public\*.ps1) -Raw)) -join "`r`n`r`n`r`n") -Encoding UTF8
+            $(Get-Content -Raw $(Join-Path $SourcePath Private\*.ps1) -ErrorAction SilentlyContinue) +
+            $(Get-Content -Raw $(Join-Path $SourcePath Public\*.ps1))) -join "`r`n`r`n`r`n") -Encoding UTF8
 
         # If there are any folders that aren't Public, Private, Tests, or Specs ...
         $OtherFolders = Get-ChildItem $SourcePath -Directory -Exclude Public, Private, Tests, Specs

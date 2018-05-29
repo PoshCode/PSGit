@@ -69,7 +69,7 @@ function Get-Log {
                         $Parents = @($Parents)[0].Parents
                         $CommitsSinceVersionSource += 1
                         Write-Verbose "Check parent $(@($Parents)[0].Id) for tags"
-                    } while ($Parents.Tags.Name -notmatch $TagPattern)
+                    } while ($Parents -and ($Parents.Tags.Name -notmatch $TagPattern))
 
                     # We are always building the NEXT version
                     if (@($Parents)[0].Tags.Name -match $TagPattern) {

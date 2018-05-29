@@ -5,27 +5,14 @@
 # } catch {}
 # $Arch = "-" + [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture
 
-Get-ChildItem -Directory -Path $PSScriptRoot\runtimes\ -Recurse -Filter 'native' |
-    ForEach-Object {
-    # For windows
-    $env:PATH = '{0}{1}{2}' -f @(
-        $_.FullName
-        [System.IO.Path]::PathSeparator
-        $env:PATH
-    )
-    # For Linux
-    $env:LD_LIBRARY_PATH = '{0}{1}{2}' -f @(
-        $_.FullName
-        [System.IO.Path]::PathSeparator
-        $env:LD_LIBRARY_PATH
-    )
-    # For macOS
-    $env:DYLD_LIBRARY_PATH = '{0}{1}{2}' -f @(
-        $_.FullName
-        [System.IO.Path]::PathSeparator
-        $env:DYLD_LIBRARY_PATH
-    )
+# Add-Type -Path (Join-Path (Join-Path $PSScriptRoot NativeBinaries\$runtime)
+${;} = [System.IO.Path]::PathSeparator
+switch -Wildcard (Get-ChildItem -Path "$PSScriptRoot\lib\NativeBinaries\*\native" -Recurse -Filter '*git2-6311e88.*') {
+    "*.so"   { $env:LD_LIBRARY_PATH = "" + $_.Directory + ${;} + $Env:LD_LIBRARY_PATH }
+    "*.dll"  { $env:PATH = "" + $_.Directory + ${;} + $Env:PATH }
+    "*.dyld" { $env:DYLD_LIBRARY_PATH = "" + $_.Directory + ${;} + $Env:DYLD_LIBRARY_PATH }
 }
+
 
 # Internal Functions
 #region Interal Functions
@@ -260,10 +247,12 @@ function Get-Change {
 }
 
 $BranchProperties =
-    @{ Name="Branch"; Expr={$_.Name}},
+    @{ Name="Branch"; Expr={$_.FriendlyName}}, # Changed in LibGit2Sharp 0.25
     @{ Name="IsHead"; Expr={ $_.IsCurrentRepositoryHead}}, "IsRemote", "IsTracking",
     @{ Name="Tip"; Expr={$_.Tip.Sha}},
-    @{ Name="Remote"; expr = { $_.Remote.Url } },
+    # This got more expensive in LibGit2Sharp 0.25
+    # Might be easier to use RemoteName, but to maintain compatibility:
+    @{ Name="Remote"; expr = { $_.Repository.Network.Remotes[$_.RemoteName].Url } },
     @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }},
     @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy }},
     @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }},
