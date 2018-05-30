@@ -1,0 +1,9 @@
+mode: ContinuousDeployment
+branches:
+  master:
+    mode: ContinuousDeployment
+  features?[/-]:
+    mode: ContinuousDelivery
+    increment: none
+ignore:
+  sha: []
