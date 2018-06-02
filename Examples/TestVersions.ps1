@@ -176,5 +176,5 @@ Test-Version $NewVersion
 ## MERGE TO MASTER
 $NewVersion = "18.6.7"
 git checkout master
-git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/$NewVersion
+git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/18.6.6
 Test-Version $NewVersion

@@ -6,45 +6,52 @@ enum Part {
     None
 }
 
-        function Get-Log {
-            [CmdletBinding()]
-            param()
-            # # We have to transform the object to keep the data around after .Dispose()
-            $Branches = $repo.Branches | Select-Object CanonicalName, FriendlyName, Is*, RemoteName, Tip, Track*, Upstream*, Ahead, Behind
+function Get-Log {
+    [CmdletBinding()]
+    param()
+    # # We have to transform the object to keep the data around after .Dispose()
+    $Branches = $repo.Branches | Select-Object CanonicalName, FriendlyName, Is*,
+                        RemoteName, Tip, Track*, Upstream*, Ahead, Behind,
+                        @{name = "IsMerged"; expr = { $false } }
 
-            $Tags = @($repo.Tags)
-            $Log = $repo.Commits | Select-Object Id,
-            @{name = "Branch"; expr = { $c = $_; $Branches.Where{$c.Id -eq $_.Tip.Id} }},
-            @{name = "Tags"; expr = { $c = $_; $Tags.Where{$c.Id -eq $_.Target.Id} }},
-            Parents, Author,
-            @{name = "Date"; expr = { $_.Author.When}},
-            @{name = "Message"; expr = { $_.MessageShort}} |
-                ForEach-Object { $_.PSTypeNames.Insert(0, "PSGit.Commit"), $_ }
+    $Tags = @($repo.Tags)
+    $Log = $repo.Commits | Select-Object Id,
+        @{name = "Branch"; expr = { $c = $_; $Branches.Where({$c.Id -eq $_.Tip.Id},1) }},
+        @{name = "Tags"; expr = { $c = $_; $Tags.Where{$c.Id -eq $_.Target.Id} }},
+        Parents, Author,
+        @{name = "Date"; expr = { $_.Author.When}},
+        @{name = "Message"; expr = { $_.MessageShort}} |
+            ForEach-Object { $_.PSTypeNames.Insert(0, "PSGit.Commit"), $_ }
 
-            # Make the branch tip be one of the objects in the Log
-            foreach ($branch in $Branches) {
-                $branch.Tip = $Log.Where( {$_.Id -eq $branch.Tip.Id}, 1)
-            }
-
-            # We need to fix:
-            # - only the tips of each branch have branch data
-            # - the parent commit objects are separate (but identical) objects
-            foreach ($commit in $Log) {
-                Write-Verbose "Commit $($commit.Id) Branch: $($commit.Branch.FriendlyName)"
-                # Reset the "Parents" to be pointers to their representation in the Log
-                $commit.Parents = $Log.Where{$_.Id -in $commit.Parents.Id}
-                # Set the branch on all the parents
-                foreach ($parent in $commit.Parents) {
-                    # How do we pick which "branch" a merge commit is in?
-                    if (!$parent.Branch) {
-                        # Write-Verbose "+ Update $($parent.Id) Branch: $($commit.Branch.FriendlyName)"
-                        $parent.Branch = $commit.Branch
-                    }
-                }
-            }
-
-            Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $Branches -Passthru
+    # Make the branch tip be one of the objects in the Log
+    foreach ($branch in $Branches) {
+        if($tip = $Log.Where( {$_.Id -eq $branch.Tip.Id}, 1)) {
+            $branch.Tip = $tip
         }
+    }
+
+    # We need to fix:
+    # - only the tips of each branch have branch data
+    # - the parent commit objects are separate (but identical) objects
+    foreach ($commit in $Log) {
+        Write-Verbose "Commit $($commit.Id) Branch: $($commit.Branch.FriendlyName)"
+        # Reset the "Parents" to be pointers to their representation in the Log
+        $commit.Parents = $Log.Where{$_.Id -in $commit.Parents.Id}
+        # Set the branch on all the parents
+        foreach ($parent in $commit.Parents) {
+            # A merge commit is always in the master branch
+            if (!$parent.Branch) {
+                # Write-Verbose "+ Update $($parent.Id) Branch: $($commit.Branch.FriendlyName)"
+                $parent.Branch = $commit.Branch
+            } elseif (@($commit.Parents).Count -gt 1 -and $commit.Branch.CanonicalName -ne $parent.Branch.CanonicalName) {
+                Write-Verbose ($parent.Branch.FriendlyName + " was merged into " + $commit.Branch.FriendlyName)
+                $parent.Branch.IsMerged = $true
+            }
+        }
+    }
+
+    Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $Branches -Passthru
+}
 
 function Get-GitVersion {
     [CmdletBinding()]
