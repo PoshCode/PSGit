@@ -1,13 +1,20 @@
 [CmdletBinding()]
-param()
+param(
+    [switch]$TagFeatures,
+
+    [string]$TestFolder = "~\projects\TestVersions",
+
+    $Source
+)
 if ($DebugPreference -ne "SilentlyContinue") {
     $DebugPreference = "Continue"
 }
-
-$TestRoot, $Source = if($PSScriptRoot) {
-    "~\Projects", $PSScriptRoot
-} else {
-    "~\Projects", "~\Projects\Modules\PSGit\Examples"
+if(!$Source) {
+    $Source = if ($PSScriptRoot) {
+        $PSScriptRoot
+    } else {
+        "~\Projects\Modules\PSGit\Examples"
+    }
 }
 
 function Test-Version {
@@ -58,10 +65,9 @@ function New-Commit {
 }
 
 ## reset
-sl $TestRoot -ea stop
-gi VersionTest -ea 0 | rm -Recurse -Force -ea 0
-mkdir VersionTest -ea 0
-sl VersionTest -ea stop
+gi $TestFolder -ea 0 | rm -Recurse -Force -ea 0
+mkdir $TestFolder -ea 0
+sl $TestFolder -ea stop
 
 ## Set up your project:
 ## Set up git
@@ -86,23 +92,28 @@ git branch features/one
 git checkout features/one
 
 ## We would like each feature to increment the patch: Major.Minor.PATCH
-$NewVersion = "18.6.1.1"
+$NewVersion = "18.6.1"
 Set-Content Readme.md "Testing versions"
 New-Commit $NewVersion -File one
+if ($TagFeatures) {
+    ## To work aroung versions, I tag the branches.
+    git tag $NewVersion
+}
 Test-Version $NewVersion
 
 git checkout master
 git branch features/two
 git checkout features/two
 
-$NewVersion = "18.6.2.1"
+$NewVersion = "18.6.2"
 New-Commit $NewVersion -File two
-## In one attempted workaround, I tried tagging the branches. That does not work
-## GitVersion basically just finds the highest tag _anywhere_ and uses that
-# git tag $NewVersion
+if ($TagFeatures) {
+    ## To work aroung versions, I tag the branches.
+    git tag $NewVersion
+}
 Test-Version $NewVersion
 
-$NewVersion = "18.6.2.2"
+$NewVersion = "18.6.2.1"
 New-Commit $NewVersion -File two
 Test-Version $NewVersion
 
@@ -110,13 +121,13 @@ git checkout features/one
 
 ## But what we want is for each commit to increment only the build: Major.Minor.Patch.BUILD
 ## The SemVer should be: 18.6.1+1 (but we use the AssemblyVersion)
-$NewVersion = "18.6.1.2"
+$NewVersion = "18.6.1.1"
 New-Commit $NewVersion -File one
 Test-Version $NewVersion
 
 git checkout features/two
 
-$NewVersion = "18.6.2.3"
+$NewVersion = "18.6.2.2"
 New-Commit $NewVersion -File two
 Test-Version $NewVersion
 
@@ -128,7 +139,7 @@ Test-Version $NewVersion
 
 git checkout features/one
 
-$NewVersion = "18.6.1.3"
+$NewVersion = "18.6.1.2"
 New-Commit $NewVersion -File one
 Test-Version $NewVersion
 
@@ -137,17 +148,33 @@ git checkout master
 git merge --no-ff -m "Want $NewVersion (merge one)" features/one
 Test-Version $NewVersion
 
+## RANDOM COMMIT ON MASTER
 $NewVersion = "18.6.5"
 New-Commit $NewVersion -File one
 Test-Version $NewVersion
 
+## RELEASE BRANCH
 $NewVersion = "18.6.6"
 git branch releases/$NewVersion
 git checkout releases/$NewVersion
-git tag $NewVersion
 New-Commit $NewVersion
 Test-Version $NewVersion
 
+## COMMIT ON RELEASE
+$NewVersion = "18.6.6"
+New-Commit $NewVersion
+Test-Version $NewVersion
+
+## TAG RELEASE
+$NewVersion = "18.6.6"
+if ($TagFeatures) {
+    ## To work aroung versions, I tag the branches.
+    git tag $NewVersion
+}
+Test-Version $NewVersion
+
+## MERGE TO MASTER
+$NewVersion = "18.6.7"
 git checkout master
 git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/$NewVersion
 Test-Version $NewVersion
