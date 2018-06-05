@@ -3,6 +3,21 @@
     <Type>
         <Name>LibGit2Sharp.Branch</Name>
         <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultKeyPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>CanonicalName</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>$this.FriendlyName</Script>
+            </ScriptMethod>
             <AliasProperty>
                 <Name>Branch</Name>
                 <ReferencedMemberName>FriendlyName</ReferencedMemberName>
@@ -30,6 +45,21 @@
     <Type>
         <Name>PSGit.Branch</Name>
         <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultKeyPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>CanonicalName</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>$this.FriendlyName</Script>
+            </ScriptMethod>
             <AliasProperty>
                 <Name>Branch</Name>
                 <ReferencedMemberName>FriendlyName</ReferencedMemberName>
@@ -45,20 +75,71 @@
         </Members>
     </Type>
     <Type>
-    <Name>LibGit2Sharp.Commit</Name>
-    <Members>
-        <ScriptProperty>
-            <Name>Date</Name>
-            <GetScriptBlock>
-                $this.Author.When
-            </GetScriptBlock>
-        </ScriptProperty>
-        <ScriptProperty>
-            <Name>IsHead</Name>
-            <GetScriptBlock>
-                $this.Repository.Head.Tip.Sha -eq $this.Sha
-            </GetScriptBlock>
-        </ScriptProperty>
-    </Members>
-</Type>
+        <Name>PSGit.Commit</Name>
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultKeyPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>Sha</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>$this.Sha</Script>
+            </ScriptMethod>
+        </Members>
+    </Type>
+    <Type>
+        <Name>LibGit2Sharp.Commit</Name>
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultKeyPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>Sha</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>$this.Sha</Script>
+            </ScriptMethod>
+            <ScriptProperty>
+                <Name>Date</Name>
+                <GetScriptBlock>$this.Author.When</GetScriptBlock>
+            </ScriptProperty>
+            <ScriptProperty>
+                <Name>IsHead</Name>
+                <GetScriptBlock>$this.Repository.Head.Tip.Sha -eq $this.Sha</GetScriptBlock>
+            </ScriptProperty>
+        </Members>
+    </Type>
+    <Type>
+        <Name>LibGit2Sharp.Tag</Name>
+        <Members>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultKeyPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>CanonicalName</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
+            <ScriptMethod>
+                <Name>ToString</Name>
+                <Script>$this.FriendlyName</Script>
+            </ScriptMethod>
+        </Members>
+    </Type>
 </Types>

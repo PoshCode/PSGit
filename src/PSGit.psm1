@@ -247,9 +247,12 @@ function Get-Change {
 }
 
 $BranchProperties =
-    @{ Name="IsHead";   Expr = { $_.IsCurrentRepositoryHead}},
-    "CanonicalName", "FriendlyName", "IsRemote", "IsTracking",
+    "FriendlyName",
     @{ Name="Tip";      Expr = { $_.Tip.Sha}},
+    @{ Name="IsHead";   Expr = { $_.IsCurrentRepositoryHead}},
+    "CanonicalName", "IsRemote", "IsTracking",
+    @{ Name="IsMerged"; Expr = { $False }},
+    @{ Name="Parent"; Expr = { $null }},
     # This got more expensive in LibGit2Sharp 0.25
     # Might be easier to use RemoteName, but to maintain compatibility:
     @{ Name="Remote";   Expr = { $_.Repository.Network.Remotes[$_.RemoteName].Url }},
@@ -260,11 +263,11 @@ $BranchProperties =
 
 $CommitProperties =
     @{Name = "Sha";     Expr = { $_.Id.Sha }},
-    @{Name = "Branch";  Expr = { $c = $_; $c.Repository.Branches.Where({$c.Id.Sha -in $_.Target.Sha})}},
-    @{Name = "Tags";    Expr = { $c = $_; $c.Repository.Tags.Where({$c.Id.Sha -eq $_.Target.Id.Sha})}},
+    @{Name = "Branch";  Expr = { $c = $_; @($c.Repository.Branches).Where({$c.Sha -in $_.Tip.Sha},1)[0]}},
+    @{Name = "Tags";    Expr = { $c = $_; @($c.Repository.Tags).Where({$c.Sha -eq $_.Target.Sha})}},
     "Parents", "Author", "IsHead",
     @{Name = "Date";    Expr = { $_.Author.When}},
-    @{Name = "Message"; Expr = { $_.MessageShort}}
+    "Message", "MessageShort"
 
 $Config = DATA {
     @{
@@ -447,16 +450,46 @@ function Get-Log {
             # We have to transform the object to keep the data around after .Dispose()
             $Branches = GetBranch $repo
 
+            # Figure out where all the branches start ...
+            $master = $Branches.Where({$_.Branch -match $Config.master.Pattern}, 1)[0]
+
+            # Because numbering is based on Master, get all of master:
+            $masterLog = $repo.Commits.QueryBy(@{
+                SortBy = "Topological,Time"
+                IncludeReachableFrom = $master.FriendlyName
+                FirstParentOnly = $true
+            }) | Select-Object $CommitProperties
+
             # TODO: implement paging so we don't return all of this every time ...
-            $Log = $repo.Commits.QueryBy(@{SortBy = "Topological,Time"}) | Select-Object $CommitProperties |
-                    Add-Member ScriptMethod ToString { $this.Sha + " (tag: $($this.Tags.FriendlyName -join ', '))" } -PassThru -Force |
-                    ForEach-Object { $_.PSTypeNames.Insert(0, "PSGit.Commit"), $_ }
+            $Log = $repo.Commits.QueryBy(@{
+                SortBy = "Topological,Time"
+            }) | Select-Object $CommitProperties |
+                 ForEach-Object { $_.PSTypeNames.Insert(0, "PSGit.Commit"), $_ }
+
+            foreach($commit in $masterLog) {
+                if($actual = $Log.Where({$commit.Sha -eq $_.Sha }, 1)[0]) {
+                    $actual.Branch = $master
+                    if($actual.Sha -eq $master.Tip.Sha) {
+                        $master.Tip = $actual
+                    }
+                }
+            }
+
+            # Determine which branch the tip is in, if possible
+            if (!$Log[0].Branch) {
+                foreach($branch in $Branches -ne $master) {
+                    if ($Log[0].Sha -in $repo.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $branch.FriendlyName}).Sha) {
+                        $Log[0].Branch = $branch
+                        break
+                    }
+                }
+            }
 
             # We need to fix:
             # - only the tips of each branch have branch data
             # - the parent commit objects are separate (but identical) objects
             foreach ($commit in $Log) {
-                Write-Verbose "Commit $($commit.Sha) Branch: $($commit.Branch.FriendlyName)"
+                Write-Verbose "Commit $($commit.Sha) ($($commit.MessageShort)) Branch: $($commit.Branch.FriendlyName)"
                 # Reset the "Parents" to be pointers to their representation in the Log
                 $commit.Parents = $Log.Where{$_.Sha -in $commit.Parents.Id}
                 # Set the branch on all the parents
@@ -467,7 +500,7 @@ function Get-Log {
                     } else {
                         # Fix initial assignment from Select-Object
                         if(!$parent.Branch.PSTypeNames.Contains("PSGit.Branch")) {
-                            $parent.Branch = $Branches.Where{ $_.CanonicalName -eq $parent.Branch.CanonicalName }
+                            $parent.Branch = $Branches.Where({ $_.CanonicalName -eq $parent.Branch.CanonicalName },1)[0]
                         }
                         # Mark parent merged
                         if (@($commit.Parents).Count -gt 1 -and $commit.Branch.CanonicalName -ne $parent.Branch.CanonicalName) {
@@ -478,33 +511,7 @@ function Get-Log {
                 }
             }
 
-
-            # Figure out where all the branches start ...
-            $master = $Branches.Where( {$_.Branch -match $Config.master.Pattern}, 1)
-
-            # Because numbering is based on Master, get all of master:
-            $masterLog = $master.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $master.FriendlyName; FirstParentOnly = $true}) |
-                Select-Object $CommitProperties
-
-            foreach($commit in $masterLog) {
-                if($actual = $Log.Where({$commit.Sha -eq $_.Sha }, 1)) {
-                    $actual.Branch = $master
-                    if($actual.Sha -eq $Branch.Tip.Sha) {
-                        $Branch.Tip = $actual
-                    }
-                }
-            }
-            # Determine which branch the tip is in, if possible
-            if (!$Log[0].Branch) {
-                foreach($branch in $Branches -ne $master) {
-                    if ($Log[0].Sha -in $repo.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $branch.FriendlyName}).Sha) {
-                        $Log[0].Branch = $branch
-                        break
-                    }
-                }
-            }
             # TODO: for versioning purposes, it would be nice to know which commits have branches from them ...
-
             Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $Branches -Passthru
         } finally {
             if($null -ne $repo) {
