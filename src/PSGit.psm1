@@ -247,16 +247,51 @@ function Get-Change {
 }
 
 $BranchProperties =
-    @{ Name="Branch"; Expr={$_.FriendlyName}}, # Changed in LibGit2Sharp 0.25
-    @{ Name="IsHead"; Expr={ $_.IsCurrentRepositoryHead}}, "IsRemote", "IsTracking",
-    @{ Name="Tip"; Expr={$_.Tip.Sha}},
+    @{ Name="IsHead";   Expr = { $_.IsCurrentRepositoryHead}},
+    "CanonicalName", "FriendlyName", "IsRemote", "IsTracking",
+    @{ Name="Tip";      Expr = { $_.Tip.Sha}},
     # This got more expensive in LibGit2Sharp 0.25
     # Might be easier to use RemoteName, but to maintain compatibility:
-    @{ Name="Remote"; expr = { $_.Repository.Network.Remotes[$_.RemoteName].Url } },
-    @{ Name="Ahead"; Expr= { $_.TrackingDetails.AheadBy }},
-    @{ Name="Behind"; Expr = { $_.TrackingDetails.BehindBy }},
-    @{ Name="CommonAncestor"; Expr={ $_.TrackingDetails.CommonAncestor.Sha }},
-    @{ Name="GitDir"; Expr= {$_.Repository.Info.WorkingDirectory}}
+    @{ Name="Remote";   Expr = { $_.Repository.Network.Remotes[$_.RemoteName].Url }},
+    @{ Name="Ahead";    Expr = { $_.TrackingDetails.AheadBy }},
+    @{ Name="Behind";   Expr = { $_.TrackingDetails.BehindBy }},
+    @{ Name="CommonAncestor"; Expr = { $_.TrackingDetails.CommonAncestor.Sha }},
+    @{ Name="GitDir";   Expr = { $_.Repository.Info.WorkingDirectory}}
+
+$CommitProperties =
+    @{Name = "Sha";     Expr = { $_.Id.Sha }},
+    @{Name = "Branch";  Expr = { $c = $_; $c.Repository.Branches.Where({$c.Id.Sha -in $_.Target.Sha})}},
+    @{Name = "Tags";    Expr = { $c = $_; $c.Repository.Tags.Where({$c.Id.Sha -eq $_.Target.Id.Sha})}},
+    "Parents", "Author", "IsHead",
+    @{Name = "Date";    Expr = { $_.Author.When}},
+    @{Name = "Message"; Expr = { $_.MessageShort}}
+
+$Config = DATA {
+    @{
+        Branches = @{
+            master = @{
+                Pattern = "master"
+                # Matches tags like v1.0.0 or 2.1.0.0
+                VersionTag      = "v?(?<version>\d+\.\d+\.\d+(?:\d+\.)?)"
+                NewIncrement    = "Major"
+                CommitIncrement = "Build"
+            }
+            release = @{
+                Pattern = "releases?/"
+                # Matches release branches like 1.0.0
+                VersionName     = "releases?/(?<version>\d+\.\d+\.\d+)"
+                # NOTIMPLEMENTED: VersionTag      = "v?(?<version>\d+\.\d+\.\d+(?:\d+\.)?)"
+                NewIncrement    = "Minor"
+                CommitIncrement = "None"
+            }
+            feature = @{
+                Pattern = "features?/|dev/"
+                NewIncrement = "Build"
+                CommitIncrement = "Revision"
+            }
+        }
+    }
+}
 
 # TODO: DOCUMENT ME
 function Get-Info {
@@ -290,6 +325,7 @@ function Get-Info {
 
 # TODO: DOCUMENT ME
 function Get-Branch {
+    [Alias("branch")]
     [CmdletBinding()]
     param (
         [Parameter()]
@@ -307,20 +343,7 @@ function Get-Branch {
 
          try {
             $repo = New-Object LibGit2Sharp.Repository $Path
-            $(
-                # In the initialized state, there are no "Branches"
-                if([Linq.Enumerable]::Count($repo.Branches) -eq 0) {
-                    # But really, there is the master!
-                    $repo.Head
-                } elseif($Force) {
-                    $repo.Branches
-                } else {
-                    $repo.Branches | Where-Object { !$_.IsRemote }
-                }
-            # We have to transform the object to keep the data around after .Dispose()
-            ) | Select-Object $BranchProperties |
-                ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
-
+            GetBranch $repo
         } finally {
             if($null -ne $repo) {
                 $repo.Dispose()
@@ -328,7 +351,24 @@ function Get-Branch {
         }
     }
 }
-Set-Alias "Branch" "Get-Branch"
+
+function GetBranch($repo) {
+    #.Synopsis
+    #    get branches from existing repo object
+    $(
+        # In the initialized state, there are no "Branches"
+        if([Linq.Enumerable]::Count($repo.Branches) -eq 0) {
+            # But really, there is the master!
+            $repo.Head
+        } elseif($Force) {
+            $repo.Branches
+        } else {
+            $repo.Branches | Where-Object { !$_.IsRemote }
+        }
+    # We have to transform the object to keep the data around after .Dispose()
+    ) | Select-Object $BranchProperties |
+        ForEach-Object { $_.PSTypeNames.Insert(0,"PSGit.Branch"); $_ }
+}
 
 function Get-Status {
     [CmdletBinding()]
@@ -346,6 +386,7 @@ function Get-Status {
 
 # TODO: DOCUMENT ME
 function Show-Status {
+    [Alias("Status")]
     [CmdletBinding()]
     param (
         [Parameter()]
@@ -382,9 +423,98 @@ function Show-Status {
         $added | Out-Default
     }
 }
-Set-Alias "Status" "Show-Status"
 
 # Export-ModuleMember -Function *-* -Alias *
+
+# TODO: DOCUMENT ME
+function Get-Log {
+    [Alias("Log")]
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd
+    )
+    end {
+        $Path = [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
+        if (!$Path) {
+            Write-Warning "The path is not in a git repository!"
+            return
+        }
+        try {
+            $repo = New-Object LibGit2Sharp.Repository $Path
+
+            # We have to transform the object to keep the data around after .Dispose()
+            $Branches = GetBranch $repo
+
+            # TODO: implement paging so we don't return all of this every time ...
+            $Log = $repo.Commits.QueryBy(@{SortBy = "Topological,Time"}) | Select-Object $CommitProperties |
+                    Add-Member ScriptMethod ToString { $this.Sha + " (tag: $($this.Tags.FriendlyName -join ', '))" } -PassThru -Force |
+                    ForEach-Object { $_.PSTypeNames.Insert(0, "PSGit.Commit"), $_ }
+
+            # We need to fix:
+            # - only the tips of each branch have branch data
+            # - the parent commit objects are separate (but identical) objects
+            foreach ($commit in $Log) {
+                Write-Verbose "Commit $($commit.Sha) Branch: $($commit.Branch.FriendlyName)"
+                # Reset the "Parents" to be pointers to their representation in the Log
+                $commit.Parents = $Log.Where{$_.Sha -in $commit.Parents.Id}
+                # Set the branch on all the parents
+                foreach ($parent in $commit.Parents) {
+                    # The first parent is the true parent
+                    if (!$parent.Branch) {
+                        $parent.Branch = $commit.Branch
+                    } else {
+                        # Fix initial assignment from Select-Object
+                        if(!$parent.Branch.PSTypeNames.Contains("PSGit.Branch")) {
+                            $parent.Branch = $Branches.Where{ $_.CanonicalName -eq $parent.Branch.CanonicalName }
+                        }
+                        # Mark parent merged
+                        if (@($commit.Parents).Count -gt 1 -and $commit.Branch.CanonicalName -ne $parent.Branch.CanonicalName) {
+                            Write-Verbose ($parent.Branch.FriendlyName + " was merged into " + $commit.Branch.FriendlyName)
+                            $parent.Branch.IsMerged = $true
+                        }
+                    }
+                }
+            }
+
+
+            # Figure out where all the branches start ...
+            $master = $Branches.Where( {$_.Branch -match $Config.master.Pattern}, 1)
+
+            # Because numbering is based on Master, get all of master:
+            $masterLog = $master.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $master.FriendlyName; FirstParentOnly = $true}) |
+                Select-Object $CommitProperties
+
+            foreach($commit in $masterLog) {
+                if($actual = $Log.Where({$commit.Sha -eq $_.Sha }, 1)) {
+                    $actual.Branch = $master
+                    if($actual.Sha -eq $Branch.Tip.Sha) {
+                        $Branch.Tip = $actual
+                    }
+                }
+            }
+            # Determine which branch the tip is in, if possible
+            if (!$Log[0].Branch) {
+                foreach($branch in $Branches -ne $master) {
+                    if ($Log[0].Sha -in $repo.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $branch.FriendlyName}).Sha) {
+                        $Log[0].Branch = $branch
+                        break
+                    }
+                }
+            }
+            # TODO: for versioning purposes, it would be nice to know which commits have branches from them ...
+
+            Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $Branches -Passthru
+        } finally {
+            if($null -ne $repo) {
+                $repo.Dispose()
+            }
+        }
+    }
+}
+
+
 
 # For PSTypes??
 # Update-TypeData -TypeName LibGit2Sharp.StatusEntry -MemberType ScriptMethod -MemberName ToString -Value { $this.FilePath }

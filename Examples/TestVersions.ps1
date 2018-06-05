@@ -101,6 +101,8 @@ if ($TagFeatures) {
 }
 Test-Version $NewVersion
 
+## And DEV2 starts a feature
+
 git checkout master
 git branch features/two
 git checkout features/two
@@ -115,6 +117,23 @@ Test-Version $NewVersion
 
 $NewVersion = "18.6.2.1"
 New-Commit $NewVersion -File two
+Test-Version $NewVersion
+
+## And DEV3 starts a feature
+git checkout master
+git branch features/three
+git checkout features/three
+
+$NewVersion = "18.6.3"
+New-Commit $NewVersion -File three
+if ($TagFeatures) {
+    ## To work aroung versions, I tag the branches.
+    git tag $NewVersion
+}
+Test-Version $NewVersion
+
+$NewVersion = "18.6.3.1"
+New-Commit $NewVersion -File three
 Test-Version $NewVersion
 
 git checkout features/one
@@ -173,8 +192,8 @@ if ($TagFeatures) {
 }
 Test-Version $NewVersion
 
-## MERGE TO MASTER
-$NewVersion = "18.6.7"
-git checkout master
-git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/18.6.6
-Test-Version $NewVersion
+# ## MERGE TO MASTER
+# $NewVersion = "18.6.7"
+# git checkout master
+# git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/18.6.6
+# Test-Version $NewVersion

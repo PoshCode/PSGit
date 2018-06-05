@@ -31,6 +31,10 @@
         <Name>PSGit.Branch</Name>
         <Members>
             <AliasProperty>
+                <Name>Branch</Name>
+                <ReferencedMemberName>FriendlyName</ReferencedMemberName>
+            </AliasProperty>
+            <AliasProperty>
                 <Name>AheadBy</Name>
                 <ReferencedMemberName>Ahead</ReferencedMemberName>
             </AliasProperty>
@@ -40,4 +44,21 @@
             </AliasProperty>
         </Members>
     </Type>
+    <Type>
+    <Name>LibGit2Sharp.Commit</Name>
+    <Members>
+        <ScriptProperty>
+            <Name>Date</Name>
+            <GetScriptBlock>
+                $this.Author.When
+            </GetScriptBlock>
+        </ScriptProperty>
+        <ScriptProperty>
+            <Name>IsHead</Name>
+            <GetScriptBlock>
+                $this.Repository.Head.Tip.Sha -eq $this.Sha
+            </GetScriptBlock>
+        </ScriptProperty>
+    </Members>
+</Type>
 </Types>
