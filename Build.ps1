@@ -34,7 +34,7 @@ $Script:TraceVerboseTimer.Start()
 
 
 $ErrorActionPreference = "Stop"
-Set-StrictMode -Version Latest
+# Set-StrictMode -Version Latest
 
 function init {
     #.Synopsis

@@ -4,6 +4,13 @@
 #     $IsOSX = [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform( [RUntime.InteropServices.OSPlatform]::OSX )
 # } catch {}
 # $Arch = "-" + [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture
+enum Part {
+    Major
+    Minor
+    Build
+    Revision
+    None
+}
 
 # Add-Type -Path (Join-Path (Join-Path $PSScriptRoot NativeBinaries\$runtime)
 ${;} = [System.IO.Path]::PathSeparator
@@ -267,7 +274,7 @@ $CommitProperties =
     @{Name = "Tags";    Expr = { $c = $_; @($c.Repository.Tags).Where({$c.Sha -eq $_.Target.Sha})}},
     "Parents", "Author", "IsHead",
     @{Name = "Date";    Expr = { $_.Author.When}},
-    "Message", "MessageShort"
+    "MessageShort", "Message"
 
 $Config = DATA {
     @{
@@ -276,7 +283,7 @@ $Config = DATA {
                 Pattern = "master"
                 # Matches tags like v1.0.0 or 2.1.0.0
                 VersionTag      = "v?(?<version>\d+\.\d+\.\d+(?:\d+\.)?)"
-                NewIncrement    = "Major"
+                NewIncrement    = "Minor"
                 CommitIncrement = "Build"
             }
             release = @{
@@ -448,10 +455,10 @@ function Get-Log {
             $repo = New-Object LibGit2Sharp.Repository $Path
 
             # We have to transform the object to keep the data around after .Dispose()
-            $Branches = GetBranch $repo
+            $script:Branches = GetBranch $repo
 
             # Figure out where all the branches start ...
-            $master = $Branches.Where({$_.Branch -match $Config.master.Pattern}, 1)[0]
+            $master = $script:Branches.Where({$_.FriendlyName -match $Config.Branches["master"].Pattern}, 1)[0]
 
             # Because numbering is based on Master, get all of master:
             $masterLog = $repo.Commits.QueryBy(@{
@@ -468,6 +475,7 @@ function Get-Log {
 
             foreach($commit in $masterLog) {
                 if($actual = $Log.Where({$commit.Sha -eq $_.Sha }, 1)[0]) {
+                    Write-Verbose "Set $($master.FriendlyName) branch on $($actual.Sha) ($($actual.MessageShort))"
                     $actual.Branch = $master
                     if($actual.Sha -eq $master.Tip.Sha) {
                         $master.Tip = $actual
@@ -477,7 +485,7 @@ function Get-Log {
 
             # Determine which branch the tip is in, if possible
             if (!$Log[0].Branch) {
-                foreach($branch in $Branches -ne $master) {
+                foreach($branch in $script:Branches -ne $master) {
                     if ($Log[0].Sha -in $repo.Commits.QueryBy(@{SortBy = "Topological,Time"; IncludeReachableFrom = $branch.FriendlyName}).Sha) {
                         $Log[0].Branch = $branch
                         break
@@ -496,11 +504,13 @@ function Get-Log {
                 foreach ($parent in $commit.Parents) {
                     # The first parent is the true parent
                     if (!$parent.Branch) {
+                        Write-Verbose "Set branch on $($parent.Sha) ($($parent.MessageShort))"
                         $parent.Branch = $commit.Branch
                     } else {
                         # Fix initial assignment from Select-Object
                         if(!$parent.Branch.PSTypeNames.Contains("PSGit.Branch")) {
-                            $parent.Branch = $Branches.Where({ $_.CanonicalName -eq $parent.Branch.CanonicalName },1)[0]
+                            Write-Verbose "Update branch on $($parent.Sha) ($($parent.MessageShort))"
+                            $parent.Branch = $script:Branches.Where({ $_.CanonicalName -eq $parent.Branch.CanonicalName },1)[0]
                         }
                         # Mark parent merged
                         if (@($commit.Parents).Count -gt 1 -and $commit.Branch.CanonicalName -ne $parent.Branch.CanonicalName) {
@@ -512,7 +522,8 @@ function Get-Log {
             }
 
             # TODO: for versioning purposes, it would be nice to know which commits have branches from them ...
-            Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $Branches -Passthru
+            $Log
+            # Add-Member -Input $Log -Type NoteProperty -Name Branches -Value $script:Branches -Passthru
         } finally {
             if($null -ne $repo) {
                 $repo.Dispose()
@@ -521,7 +532,203 @@ function Get-Log {
     }
 }
 
+# TODO: DOCUMENT ME
 
+function Get-Version {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [String]$Root = $Pwd,
+        [String]$Sha
+    )
+    begin {
+        [Part]$script:HighestPartIncremented = "None"
+        [Version]$BaseVersion = "0.0.0.0"
+        $Increment = [Ordered]@{
+            Major = 0
+            Minor = 0
+            Build = 0
+            Revision = 0
+            None = 0 # this is a hack
+        }
+        function PushIncrement {
+            [CmdletBinding()]
+            param($Increment, $Commit, [Part]$NewIncrement, [Part]$CommitIncrement, [Parameter(ValueFromRemainingArguments)]$Args)
+
+            # We only increment one part per commit, so pick the highest one we're going to use
+            if ($Commit.Parents -eq $null -or $Commit.Parents.Version -or -not (@($Commit.Parents).Branch.CanonicalName -eq $Commit.Branch.CanonicalName)) {
+                Write-Verbose "Increment $NewIncrement or $CommitIncrement"
+                [Part]$CommitIncrement = [Math]::Min([int]$NewIncrement, [int]$CommitIncrement)
+            }
+            # But only increment if we're not past that already
+            if ($CommitIncrement -le $script:HighestPartIncremented) {
+                Write-Verbose "Increment $CommitIncrement for '$($Commit.MessageShort)' (on $($Commit.Branch.FriendlyName)) $($Commit.Sha.Substring(0,7))"
+                $script:HighestPartIncremented = $CommitIncrement
+                $Increment["$CommitIncrement"] += 1
+            } else {
+                Write-Verbose "Skip incrementing $CommitIncrement because we already incremented $script:HighestPartIncremented"
+            }
+        }
+        function GetBaseVersion {
+            [CmdletBinding()]
+            param($Repo, $Log, [string]$Sha)
+            [Version]$BaseVersion = "0.0.0.0"
+
+            $roots = @($repo.Branches.Where({$_.FriendlyName -match $Config.Branches["master"].Pattern}, 1)[0].FriendlyName)
+            if($Sha) { $roots += $Sha }
+
+            $global:Master = $repo.Commits.QueryBy(@{
+                SortBy = "Topological,Time"
+                IncludeReachableFrom = $roots
+                FirstParentOnly = $true
+            })
+
+            # If Sha is specified, skip any commits after that one
+            if($Sha) {
+                $Master = [Linq.Enumerable]::SkipWhile( $Master, [Func[LibGit2Sharp.Commit,Bool]]{ !$args[0].Sha.StartsWith($Sha) })
+            }
+            # Then find the first commit in the log:
+            $First = [Linq.Enumerable]::First($Master).Sha
+            $Commit = $Log.Where({$_.Sha -match $First},1)[0]
+
+            # Special case: if we're on a release branch, then the version is the release version
+            # ... but we need to count how many commits there are on this branch
+            if ($Commit.Branch.FriendlyName -match $Config.Branches.Release.Pattern) {
+                if ($Commit.Branch.FriendlyName -match "^$($Config.Branches.Release.VersionName)") {
+                    $Count = [Linq.Enumerable]::Count($repo.Commits.QueryBy(@{
+                        SortBy = "Topological,Time"
+                        IncludeReachableFrom = $Commit.Sha
+                        ExcludeReachableFrom = $roots[0]
+                        FirstParentOnly = $true
+                    }))
+                    [Version]$BaseVersion = $Matches["Version"] + ".$Count"
+
+                    $Commit | Add-Member -Type NoteProperty -Name Version -Value $BaseVersion -PassThru |
+                              Add-Member -Type NoteProperty -Name CommitsInBranch -Value $Count -PassThru
+                    Write-Verbose "On release branch $BaseVersion on $($Commit.Sha): $($Commit.Tags.FriendlyName)"
+                    return
+                } else {
+                    throw "Can't determine version from release branch name. Check your config for release branches "
+                }
+            }
+
+            do {
+                ## check if we found a source of truth:
+                # Does it have a version tag:
+                if ($Commit.Tags.FriendlyName -match "^$($Config.Branches.Master.VersionTag)$") {
+                    [Version]$BaseVersion = $Matches["Version"]
+                    $Commit | Add-Member -Type NoteProperty -Name Version -Value $BaseVersion -Passthru |
+                              Add-Member -Type NoteProperty -Name CommitsInBranch -Value 0 -PassThru
+                    Write-Verbose "Found version tag $BaseVersion on $($Commit.Sha): $($Commit.Tags.FriendlyName)"
+                    break
+                }
+
+                # Is it a merge from a release branch:
+                if ($Release = @($Commit.Parents).Where( {$_.Branch.FriendlyName -match $Config.Branches.Release.Pattern}, 1)[0]) {
+                    # Check the branch name
+                    if ($Release.Branch.FriendlyName -match "^$($Config.Branches.Release.VersionName)") {
+                        [Version]$BaseVersion = $Matches["Version"]
+                        $Release | Add-Member -Type NoteProperty -Name Version -Value $BaseVersion -Passthru |
+                                   Add-Member -Type NoteProperty -Name CommitsInBranch -Value 0 -PassThru
+                        Write-Verbose "Found release branch merge $BaseVersion on $($Commit.Sha) from $($Release.Sha): $($Commit.Tags.FriendlyName)"
+                        break
+                    } else {
+                        throw "Can't determine version from release branch name. Check your config for release branches "
+                    }
+                }
+                $Commit = @($Commit.Parents).Where( {$_.Branch.FriendlyName -match $Config.Branches.master.Pattern}, 1)[0]
+            } while ($Commit)
+        }
+    }
+    end {
+        $Path = [LibGit2Sharp.Repository]::Discover((Convert-Path $Root))
+        if (!$Path) {
+            Write-Warning "The path is not in a git repository!"
+            return
+        }
+
+        try {
+            $repo = New-Object LibGit2Sharp.Repository $Path
+
+            if (!@($repo.Commits)) {
+                Write-Warning "No commits found in repository!"
+                return
+            }
+            # In order to guarantee each branch gets it's own version number, we need to index them in "some way"
+            $Log = Get-GitLog
+            # Start from the specified commit or the current head
+            if ($Sha) {
+                $Commit = $tip = $Log.Where( { $_.Sha.StartsWith($Sha) })
+                if (@($tip).Count -gt 1) {
+                    throw "Bad Sha, matches multiple commits: `n$($tip.Sha -join "`n")"
+                }
+            } else {
+                $Commit = $tip = $Log[0] #.Where{ $_.Id -eq $repo.Head.Id}
+            }
+
+            # Now, to find the version for *THIS* commit, we need to:
+            # 1. Find a source of truth
+            $BaseVersionCommit = GetBaseVersion $Repo $Log $Sha
+            $Count = $BaseVersionCommit.CommitsInBranch
+
+            # 2. Increment from there according to rules
+            while($Commit -and $Commit.Sha -ne $BaseVersionCommit.Sha) {
+                Write-Verbose "Increment for '$($Commit.MessageShort)' ($($Commit.Branch.FriendlyName)) $($Commit.Sha.Substring(0,7))"
+
+                ## otherwise increment according to the config
+                # find the branch config for this branch
+                $BranchConfig = $null
+                foreach ($branch in $Config.Branches.Keys) {
+                    if ($Commit.Branch.FriendlyName -match "^$branch") {
+                        $BranchConfig = $Config.Branches[$branch]
+                        continue
+                    }
+                }
+                if ($BranchConfig) {
+                    # increment accordingly
+                    . PushIncrement $Increment $Commit @BranchConfig
+                } else {
+                    Write-Warning "Can't find config for branch: $($Commit.Branch)"
+                    $Commit | Out-Host
+                }
+
+                # When we reach the BaseVersion, stop
+                if($Commit.Parents.Sha -eq $BaseVersionCommit.Sha) {
+                    break
+                }
+                # Otherwise, follow the trail
+                $Commit = @($Commit.Parents)[-1]
+                $Count += 1
+            }
+
+            # $Increment | Out-String | Write-Host -Fore "#336699"
+            # $BaseVersionCommit.Version | Out-String | Write-Host -Fore "#336699"
+
+            $Version = [Version]::new(
+                ($BaseVersionCommit.Version.Major + $Increment.Major),
+                ($BaseVersionCommit.Version.Minor + $Increment.Minor),
+                ($BaseVersionCommit.Version.Build + $Increment.Build),
+                ([Math]::Max(0, $BaseVersionCommit.Version.Revision) + $Increment.Revision))
+
+            if($Count -eq $BaseVersionCommit.CommitsInBranch) {
+                $SemVer = $Version.ToString(3) + "+" + $Count + '.sha.' + $tip.Sha + '.date.' + $tip.Author.When.UtcDateTime.ToString("O").split(".", 2)[0]
+            } else {
+                $SemVer = $Version.ToString(3) + "-" + $tip.Branch.FriendlyName + '.' + $Version.Revision + '+' + $Increment.None + '.sha.' + $tip.Sha + '.date.' + $tip.Author.When.UtcDateTime.ToString("O").split(".", 2)[0]
+            }
+
+            [PSCustomObject]@{
+                Version = $Version
+                SemVer = $SemVer
+            }
+
+        } finally {
+            if ($null -ne $repo) {
+                $repo.Dispose()
+            }
+        }
+    }
+}
 
 # For PSTypes??
 # Update-TypeData -TypeName LibGit2Sharp.StatusEntry -MemberType ScriptMethod -MemberName ToString -Value { $this.FilePath }

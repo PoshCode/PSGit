@@ -88,6 +88,22 @@
                     </PropertySet>
                 </Members>
             </MemberSet>
+            <MemberSet>
+                <Name>PSStandardMembers</Name>
+                <Members>
+                    <PropertySet>
+                        <Name>DefaultDisplayPropertySet</Name>
+                        <ReferencedProperties>
+                            <Name>Sha</Name>
+                            <Name>Branch</Name>
+                            <Name>Tags</Name>
+                            <Name>Author</Name>
+                            <Name>Date</Name>
+                            <Name>Message</Name>
+                        </ReferencedProperties>
+                    </PropertySet>
+                </Members>
+            </MemberSet>
             <ScriptMethod>
                 <Name>ToString</Name>
                 <Script>$this.Sha</Script>
