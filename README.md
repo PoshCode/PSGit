@@ -7,6 +7,14 @@
 
 A task-based, object-oriented, pipeline-focused implementation of git, providing a new command-line interface in PowerShell functions.
 
+## Installation
+
+Install it from PowerShell Gallery:
+
+```powershell
+Install-Module PSGit
+```
+
 ## Status
 
 The current `master` branch has reached the point where it's sufficient to replace my use of `posh-git` (for building prompts), but doesn't yet have anything like a `write-vcsstatus` for default prompt output.
