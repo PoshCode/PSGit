@@ -96,7 +96,7 @@ $NewVersion = "18.6.1"
 Set-Content Readme.md "Testing versions"
 New-Commit $NewVersion -File one
 if ($TagFeatures) {
-    ## To work aroung versions, I tag the branches.
+    ## As a test, tag feature branches
     git tag $NewVersion
 }
 Test-Version $NewVersion
@@ -110,30 +110,13 @@ git checkout features/two
 $NewVersion = "18.6.2"
 New-Commit $NewVersion -File two
 if ($TagFeatures) {
-    ## To work aroung versions, I tag the branches.
+    ## As a test, tag feature branches
     git tag $NewVersion
 }
 Test-Version $NewVersion
 
 $NewVersion = "18.6.2.1"
 New-Commit $NewVersion -File two
-Test-Version $NewVersion
-
-## And DEV3 starts a feature
-git checkout master
-git branch features/three
-git checkout features/three
-
-$NewVersion = "18.6.3"
-New-Commit $NewVersion -File three
-if ($TagFeatures) {
-    ## To work aroung versions, I tag the branches.
-    git tag $NewVersion
-}
-Test-Version $NewVersion
-
-$NewVersion = "18.6.3.1"
-New-Commit $NewVersion -File three
 Test-Version $NewVersion
 
 git checkout features/one
@@ -150,50 +133,94 @@ $NewVersion = "18.6.2.2"
 New-Commit $NewVersion -File two
 Test-Version $NewVersion
 
-## MERGE A BRANCH (tagged 18.6.1) TO MASTER
+## And DEV2 finishes, and merges to master
 $NewVersion = "18.6.3"
 git checkout master
 git merge --no-ff -m "Want $NewVersion (merge two)" features/two
+git branch -d features/two
 Test-Version $NewVersion
 
+## And DEV3 starts a feature
+git checkout master
+git branch features/three
+git checkout features/three
+
+$NewVersion = "18.6.4"
+New-Commit $NewVersion -File three
+if ($TagFeatures) {
+    ## As a test, tag feature branches
+    git tag $NewVersion
+}
+Test-Version $NewVersion
+
+$NewVersion = "18.6.4.1"
+New-Commit $NewVersion -File three
+Test-Version $NewVersion
+
+## And DEV1 does some more work
 git checkout features/one
 
 $NewVersion = "18.6.1.2"
 New-Commit $NewVersion -File one
 Test-Version $NewVersion
 
-$NewVersion = "18.6.4"
+## And DEV1 finishes, and merges to master
+$NewVersion = "18.6.5"
 git checkout master
 git merge --no-ff -m "Want $NewVersion (merge one)" features/one
+git branch -d features/one
 Test-Version $NewVersion
 
 ## RANDOM COMMIT ON MASTER
-$NewVersion = "18.6.5"
+$NewVersion = "18.6.6"
 New-Commit $NewVersion -File one
 Test-Version $NewVersion
 
 ## RELEASE BRANCH
-$NewVersion = "18.6.6"
+$Release = $NewVersion = "18.6.7"
 git branch releases/$NewVersion
 git checkout releases/$NewVersion
 New-Commit $NewVersion
 Test-Version $NewVersion
 
 ## COMMIT ON RELEASE
-$NewVersion = "18.6.6"
+$NewVersion = "18.6.7"
 New-Commit $NewVersion
 Test-Version $NewVersion
 
-## TAG RELEASE
-$NewVersion = "18.6.6"
+if($StopEarly) {
+    return
+}
+
+## And DEV2 starts a new feature
+git checkout master
+git branch features/two
+git checkout features/two
+
+$NewVersion = "18.6.8"
+New-Commit $NewVersion -File two
 if ($TagFeatures) {
-    ## To work aroung versions, I tag the branches.
+    ## As a test, tag feature branches
     git tag $NewVersion
 }
 Test-Version $NewVersion
 
-# ## MERGE TO MASTER
-# $NewVersion = "18.6.7"
-# git checkout master
-# git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/18.6.6
-# Test-Version $NewVersion
+$NewVersion = "18.6.8.1"
+New-Commit $NewVersion -File two
+Test-Version $NewVersion
+
+## Finish RELEASE
+$NewVersion = $Release -split "\." | % {$i=0; $a=@()} { $i += 1; if($i -eq 3){ $a += @(([int]$_) + 1) }else{ $a += @($_) } } { $a -join "." }
+git checkout releases/$Release
+git tag $NewVersion
+Test-Version $NewVersion
+git checkout master
+git merge --no-ff -m "Want $NewVersion (merge $NewVersion)" releases/$Release
+git branch -d releases/$Release
+
+## And DEV3 finishes, and merges to master ??
+$NewVersion = "18.7.1"
+git checkout master
+git merge --no-ff -m "Want $NewVersion (merge three)" features/three
+git branch -d features/three
+Test-Version $NewVersion

@@ -186,6 +186,7 @@ function update {
     foreach($manifest in Get-ChildItem $Script:SourcePath -filter *.psd1 -Recurse) {
         foreach($Dependency in (Get-Module $manifest.FullName -ListAvailable -ErrorAction SilentlyContinue).RequiredModules) {
             if(!(Get-Module $Dependency.Name -ListAvailable -EA 0)) {
+                Write-Warning "Installing $($Dependency.Name) in -Scope CurrentUser"
                 Install-Module -Name $Dependency.Name -AllowClobber -Force -SkipPublisherCheck -Scope CurrentUser
             }
         }
@@ -220,7 +221,7 @@ function build {
 
             Trace-Message "robocopy $PackageSource $LibPath /E /NP /LOG+:'$OutputPath\build.log' /R:2 /W:15"
             $null = robocopy $PackageSource $LibPath /E /NP /LOG+:"$OutputPath\build.log" /R:2 /W:15
-            if($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 1 -and $LASTEXITCODE -ne 3) {
+            if($LASTEXITCODE -gt 3) {
                 throw "Failed to copy Package $($Package.id) (${LASTEXITCODE}), see build.log for details"
             }
         }

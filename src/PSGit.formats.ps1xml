@@ -137,13 +137,16 @@
                         <Label>Message</Label>
                     </TableColumnHeader>
                     <TableColumnHeader>
+                        <Label>Branch</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>Tags</Label>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
                         <Label>Date</Label>
                     </TableColumnHeader>
                     <TableColumnHeader>
                         <Label>Author</Label>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Label>Tags</Label>
                     </TableColumnHeader>
                 </TableHeaders>
                 <TableRowEntries>
@@ -158,57 +161,12 @@
                                 <PropertyName>MessageShort</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <ScriptBlock>
-                                    "{0:MMM d yyyy hh:mm:ss}" -f $_.Date
-                                </ScriptBlock>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>Author</PropertyName>
+                                <PropertyName>Branch</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
                                 <ScriptBlock>
-                                    "{" + ($_.Tags.FriendlyName -join ", ") + "}"
+                                    $_.Tags.FriendlyName
                                 </ScriptBlock>
-                            </TableColumnItem>
-                        </TableColumnItems>
-                    </TableRowEntry>
-                </TableRowEntries>
-            </TableControl>
-        </View>
-        <View>
-            <Name>Git.CommitList</Name>
-            <ViewSelectedBy>
-                <TypeName>LibGit2Sharp.Commit</TypeName>
-                <TypeName>PSGit.Commit</TypeName>
-            </ViewSelectedBy>
-            <TableControl>
-                <TableHeaders>
-                    <TableColumnHeader>
-                        <Label>Sha</Label>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Label>Message</Label>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Label>Date</Label>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Label>Author</Label>
-                    </TableColumnHeader>
-                    <TableColumnHeader>
-                        <Label>Tags</Label>
-                    </TableColumnHeader>
-                </TableHeaders>
-                <TableRowEntries>
-                    <TableRowEntry>
-                        <TableColumnItems>
-                            <TableColumnItem>
-                                <ScriptBlock>
-                                    $_.Sha.ToString().Substring(0,7)
-                                </ScriptBlock>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <PropertyName>MessageShort</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
                                 <ScriptBlock>
@@ -217,11 +175,6 @@
                             </TableColumnItem>
                             <TableColumnItem>
                                 <PropertyName>Author</PropertyName>
-                            </TableColumnItem>
-                            <TableColumnItem>
-                                <ScriptBlock>
-                                    "{" + ($_.Tags.FriendlyName -join ", ") + "}"
-                                </ScriptBlock>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
