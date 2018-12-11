@@ -1,6 +1,19 @@
 # PSGit
 
+[![powershellgallery](https://img.shields.io/powershellgallery/v/PSGit.svg)](https://www.powershellgallery.com/packages/PSGit)
+[![downloads](https://img.shields.io/powershellgallery/dt/PSGit.svg?label=downloads)](https://www.powershellgallery.com/packages/PSGit)
+[![build](https://ci.appveyor.com/api/projects/status/42a7ng63t0q7ba7e/branch/master?svg=true)](https://ci.appveyor.com/project/PoshCode/PSGit)
+[![codecov](https://codecov.io/gh/PoshCode/PSGit/branch/master/graph/badge.svg)](https://codecov.io/gh/PoshCode/PSGit)
+
 A task-based, object-oriented, pipeline-focused implementation of git, providing a new command-line interface in PowerShell functions.
+
+## Installation
+
+Install it from PowerShell Gallery:
+
+```powershell
+Install-Module PSGit
+```
 
 ## Status
 
@@ -14,7 +27,7 @@ We're also using this project as a way to test out a process of co-working and d
 
 Therefore, we want you to [get involved](CONTRIBUTING.md)!
 
-## Current project build status
+## Detailed current project build status
 
 Build      | Status | Coverage 
 ---------- | ------ | --------
