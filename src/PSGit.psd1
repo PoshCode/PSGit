@@ -61,16 +61,35 @@ FormatsToProcess = @("PSGit.formats.ps1xml")
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = '*'
+FunctionsToExport = @(
+    "Get-StatusPowerLine"
+	"Set-PromptSettings"
+	"Get-Branch"
+	"Get-Change"
+	"Get-Info"
+	"Get-RootFolder"
+	"Get-Status"	
+	"New-Repository"
+	"Set-PromptSetting"
+	"Show-Status"
+	"Write-Status"
+	"Write-StatusPowerLine"
+	"Write-Text"
+	"Write-VcsStatus"    
+)
 
 # Cmdlets to export from this module
-CmdletsToExport = '*'
+CmdletsToExport = ''
 
 # Variables to export from this module
-VariablesToExport = '*'
+VariablesToExport = ''
 
 # Aliases to export from this module
-AliasesToExport = '*'
+AliasesToExport = @(
+        "Branch"
+        "Status"
+        "Set-PromptSettings"
+)
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
